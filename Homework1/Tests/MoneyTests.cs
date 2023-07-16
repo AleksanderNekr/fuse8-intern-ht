@@ -9,7 +9,7 @@ public class MoneyTests
 	[MemberData(memberName: nameof(MoneyCreateData), MemberType = typeof(MoneyTestData))]
 	public void MoneyCreatesWithConstructorData(bool isNegative, int rubles, int kopeks)
 	{
-		var money = new Money(isNegative: isNegative, rubles: rubles, kopeks: kopeks);
+		var money = new Money(isNegative: isNegative, rubles: rubles, kopecks: kopeks);
 		Assert.Equal(expected: isNegative, actual: money.IsNegative);
 		Assert.Equal(expected: rubles, actual: money.Rubles);
 		Assert.Equal(expected: kopeks, actual: money.Kopeks);
@@ -19,7 +19,7 @@ public class MoneyTests
 	[MemberData(memberName: nameof(InvalidMoneyData), MemberType = typeof(MoneyTestData))]
 	public void InvalidMoney(bool isNegative, int rubles, int kopeks)
 	{
-		Assert.Throws<ArgumentException>(() => new Money(isNegative, rubles: rubles, kopeks: kopeks));
+		Assert.Throws<ArgumentException>(() => new Money(isNegative, rubles: rubles, kopecks: kopeks));
 	}
 
 	[Theory(DisplayName = "При сложении двух Money рубли складываются с рублями, копейки - с копейками. При достижении макс. значения копеек - добавляется 1 руб.")]
