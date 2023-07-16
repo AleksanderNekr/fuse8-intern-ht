@@ -5,31 +5,33 @@
 /// </summary>
 public class CalendarResource
 {
-	public static readonly CalendarResource Instance = new();
+    public static readonly CalendarResource Instance = new();
 
-	public static readonly string January = GetMonthByNumber(0);
-	public static readonly string February = GetMonthByNumber(1);
+    public static readonly string January;
+    public static readonly string February;
 
-	private static readonly string[] MonthNames;
+    private static readonly string[] MonthNames;
 
-	static CalendarResource()
-	{
-		MonthNames = new[]
-		{
-			"Январь",
-			"Февраль",
-			"Март",
-			"Апрель",
-			"Май",
-			"Июнь",
-			"Июль",
-			"Август",
-			"Сентябрь",
-			"Октябрь",
-			"Ноябрь",
-			"Декабрь",
-		};
-	}
+    static CalendarResource()
+    {
+        MonthNames = new[]
+                     {
+                         "Январь",
+                         "Февраль",
+                         "Март",
+                         "Апрель",
+                         "Май",
+                         "Июнь",
+                         "Июль",
+                         "Август",
+                         "Сентябрь",
+                         "Октябрь",
+                         "Ноябрь",
+                         "Декабрь",
+                     };
+        February = GetMonthByNumber(1);
+        January  = GetMonthByNumber(0);
+    }
 
 	private static string GetMonthByNumber(int number)
 		=> MonthNames[number];
