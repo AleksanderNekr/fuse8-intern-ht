@@ -33,24 +33,37 @@ public class CalendarResource
         January  = GetMonthByNumber(0);
     }
 
-	private static string GetMonthByNumber(int number)
-		=> MonthNames[number];
+    private static string GetMonthByNumber(int number) => MonthNames[number];
 
-	// ToDo реализовать индексатор для получения названия месяца по енаму Month
+    public string this[Month month]
+    {
+        get
+        {
+            var index = (int)month;
+            if (index < 0 || index >= MonthNames.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(month),
+                                                      month,
+                                                      "Данные для данного месяца не могут быть получены");
+            }
+
+            return MonthNames[index];
+        }
+    }
 }
 
 public enum Month
 {
-	January,
-	February,
-	March,
-	April,
-	May,
-	June,
-	July,
-	August,
-	September,
-	October,
-	November,
-	December,
+    January,
+    February,
+    March,
+    April,
+    May,
+    June,
+    July,
+    August,
+    September,
+    October,
+    November,
+    December,
 }
