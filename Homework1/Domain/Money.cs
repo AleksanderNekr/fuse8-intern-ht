@@ -5,27 +5,42 @@
 /// </summary>
 public sealed class Money : IComparable<Money>
 {
-	public Money(int rubles, int kopeks)
-		: this(false, rubles, kopeks)
-	{
-	}
+    public Money(int rubles, int kopecks)
+        : this(false, rubles, kopecks)
+    {
+    }
 
-	public Money(bool isNegative, int rubles, int kopeks)
-	{
-		IsNegative = isNegative;
-		Rubles = rubles;
-		Kopeks = kopeks;
-	}
+    public Money(bool isNegative, int rubles, int kopecks)
+    {
+        if (rubles < 0)
+        {
+            throw new ArgumentException("Количество рублей не может быть отрицательным");
+        }
 
-	/// <summary>
-	/// Отрицательное значение
-	/// </summary>
-	public bool IsNegative { get; }
+        if (kopecks is < 0 or > 99)
+        {
+            throw new ArgumentException("Количество копеек должно быть от 0 до 99 включительно");
+        }
 
-	/// <summary>
-	/// Число рублей
-	/// </summary>
-	public int Rubles { get; }
+        if (isNegative && rubles == 0 && kopecks == 0)
+        {
+            throw new ArgumentException("Нулевой баланс не может быть отрицательным");
+        }
+
+        this.IsNegative = isNegative;
+        this.Rubles     = rubles;
+        this.Kopeks     = kopecks;
+    }
+
+    /// <summary>
+    /// Отрицательное значение
+    /// </summary>
+    public bool IsNegative { get; }
+
+    /// <summary>
+    /// Число рублей
+    /// </summary>
+    public int Rubles { get; }
 
     /// <summary>
     /// Количество копеек
