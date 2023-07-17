@@ -61,7 +61,7 @@ public sealed class Money : IComparable<Money>
             return 1;
         }
 
-        return ConvertToKopeсks(this).CompareTo(ConvertToKopeсks(other));
+        return this.ConvertToKopeсks().CompareTo(other.ConvertToKopeсks());
     }
 
     public static bool operator <(Money? left, Money? right)
@@ -89,7 +89,7 @@ public sealed class Money : IComparable<Money>
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
 
-        int kopeсksSum = ConvertToKopeсks(left) + ConvertToKopeсks(right);
+        int kopeсksSum = left.ConvertToKopeсks() + right.ConvertToKopeсks();
 
         return ConvertToMoney(kopeсksSum);
     }
@@ -99,15 +99,15 @@ public sealed class Money : IComparable<Money>
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
 
-        int kopeсksDif = ConvertToKopeсks(left) - ConvertToKopeсks(right);
+        int kopeсksDif = left.ConvertToKopeсks() - right.ConvertToKopeсks();
 
         return ConvertToMoney(kopeсksDif);
     }
 
-    private static int ConvertToKopeсks(in Money money)
+    private int ConvertToKopeсks()
     {
-        int kopecks = money.Rubles * KopeсksInRuble + money.Kopeks;
-        if (money.IsNegative)
+        int kopecks = this.Rubles * KopeсksInRuble + this.Kopeks;
+        if (this.IsNegative)
         {
             return -1 * kopecks;
         }
