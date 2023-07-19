@@ -5,7 +5,29 @@
 /// </summary>
 public class Lazy<TValue>
 {
-	// TODO Реализовать ленивое получение значение при первом обращении к Value
+    private readonly Func<TValue?> _creationFunc;
 
-	public TValue? Value { get; }
+    private TValue? _value;
+
+    private bool _isCreated;
+
+    public Lazy(Func<TValue?> creationFunc)
+    {
+        this._creationFunc = creationFunc;
+    }
+
+
+    public TValue? Value
+    {
+        get
+        {
+            if (this._isCreated)
+            {
+                return this._value;
+            }
+
+            this._isCreated = true;
+            return this._value = this._creationFunc();
+        }
+    }
 }
