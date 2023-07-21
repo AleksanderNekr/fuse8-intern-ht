@@ -18,33 +18,21 @@ public static class AssemblyHelpers
     {
         // Получаем все классы из текущей Assembly
         IEnumerable<TypeInfo> assemblyClassTypes = Assembly.GetAssembly(typeof(AssemblyHelpers))!.DefinedTypes
-                                                           .Where(static p => p.IsClass)
-                                                           .ToList(); // Во избежание повторной енумерации
+                                                           .Where(static p => p.IsClass);
 
-        // Поиск базовых классов
-        Dictionary<string, int> baseTypeChildrenCountPairs = assemblyClassTypes
-                                                            .Select(static type => GetBaseType(type))
-                                                            .Distinct()
-                                                            .Where(static baseType => baseType is not null
-                                                                    && baseType.Namespace == LookupNamespace)
-                                                            .ToDictionary(keySelector: static baseType => baseType!.Name,
-                                                                          elementSelector: static _ => 0);
-        // Подсчет неабстрактных наследников.
-        foreach (TypeInfo type in assemblyClassTypes.Where(static type => !type.IsAbstract))
-        {
-            Type? baseClass = GetBaseType(type);
-
-            // Фильтрация базового класса по наличию в найденных
-            if (baseClass is null || !baseTypeChildrenCountPairs.ContainsKey(baseClass.Name))
-            {
-                continue;
-            }
-
-            baseTypeChildrenCountPairs[baseClass.Name]++;
-        }
-
-        return baseTypeChildrenCountPairs.Select(static pair => (pair.Key, pair.Value))
-                                         .ToArray();
+        // Поиск базовых классов с подсчетом их наследников.
+        return assemblyClassTypes
+              .Select(static type => new
+                                     {
+                                         type,
+                                         baseType = GetBaseType(type)
+                                     })
+              .Where(static typeBasePair => typeBasePair.baseType is not null
+                                         && typeBasePair.baseType.Namespace == LookupNamespace
+                                         && !typeBasePair.type.IsAbstract)
+              .GroupBy(static typeBasePair => typeBasePair.baseType)
+              .Select(static group => (group.Key!.Name, group.Count()))
+              .ToArray();
     }
 
     /// <summary>
