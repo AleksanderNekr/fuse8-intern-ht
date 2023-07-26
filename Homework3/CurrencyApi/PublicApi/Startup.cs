@@ -20,7 +20,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers()
+        services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
 
                  // Добавляем глобальные настройки для преобразования Json
                 .AddJsonOptions(static options =>
