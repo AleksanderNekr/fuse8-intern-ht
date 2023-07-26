@@ -1,6 +1,6 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
-using Newtonsoft.Json.Linq;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Extensions;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
 
@@ -18,30 +18,12 @@ public sealed class CheckStatusMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        int remaining = await GetRemainingRequestsAsync(context.RequestAborted);
+        int remaining = await _httpClient.GetRemainingAsync(context.RequestAborted);
         if (remaining <= 0)
         {
             throw new ApiRequestLimitException();
         }
 
         await _next(context);
-    }
-
-    private async ValueTask<int> GetRemainingRequestsAsync(CancellationToken stopToken)
-    {
-        const string        requestUri = CurrencyApiConstants.ApiStatusRequest;
-        HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new BadHttpRequestException(response.Headers.ToString());
-        }
-
-        string  responseBody   = await response.Content.ReadAsStringAsync(stopToken);
-        dynamic responseParsed = JObject.Parse(responseBody);
-        dynamic quotasSection  = responseParsed.quotas;
-        dynamic monthSection   = quotasSection.month;
-
-        return monthSection.remaining;
     }
 }
