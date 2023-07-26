@@ -20,7 +20,7 @@ internal class ExceptionFilter : IExceptionFilter
         switch (exception)
         {
             case ApiRequestLimitException:
-                _logger.LogError("API request limit exceeded\n{Message}", exception.Message);
+                _logger.LogError(exception, "API request limit exceeded");
                 context.Result = new ObjectResult(exception.Message)
                                  {
                                      StatusCode = 429,
@@ -32,7 +32,7 @@ internal class ExceptionFilter : IExceptionFilter
 
                 break;
             default:
-                _logger.LogError("Exception: {Message}", exception.Message);
+                _logger.LogError(exception, "Unknown exception");
                 context.Result = new ObjectResult(exception.Message)
                                  {
                                      StatusCode = 500,
