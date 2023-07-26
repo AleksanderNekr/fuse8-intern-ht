@@ -25,13 +25,13 @@ public class CurrencyApiController : ControllerBase
     /// <param name="clientFactory">Фабрика создания HTTP-клиента.</param>
     /// <param name="currenciesSettings">Настройки получения информации о валютах.</param>
     public CurrencyApiController(IHttpClientFactory           clientFactory,
-                                 IOptions<CurrenciesSettings> currenciesSettings)
+                                 IOptionsMonitor<CurrenciesSettings> currenciesSettings)
     {
         _httpClient = clientFactory.CreateClient("DefaultClient");
 
-        _baseCurrency    = currenciesSettings.Value.BaseCurrency;
-        _defaultCurrency = currenciesSettings.Value.DefaultCurrency;
-        _decimalPlace    = currenciesSettings.Value.DecimalPlace;
+        _baseCurrency    = currenciesSettings.CurrentValue.BaseCurrency;
+        _defaultCurrency = currenciesSettings.CurrentValue.DefaultCurrency;
+        _decimalPlace    = currenciesSettings.CurrentValue.DecimalPlace;
     }
 
     /// <summary>
