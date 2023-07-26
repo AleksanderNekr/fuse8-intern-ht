@@ -1,10 +1,8 @@
-using System.Net;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Extensions;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
 
@@ -38,49 +36,161 @@ public class CurrencyApiController : ControllerBase
     /// <summary>
     ///     Получение курса валюты по умолчанию.
     /// </summary>
+    /// <param name="stopToken">Токен отмены операции.</param>
     /// <response code="200">
-    ///     Возвращает, если удалось получить курс валюты по умолчанию от api.currencyapi.com.
+    ///     Возвращает, если удалось получить курс валюты по умолчанию.
     /// </response>
     /// <response code="400">
-    ///     Возвращает, если не удалось получить курс валюты по умолчанию от api.currencyapi.com.
+    ///     Возвращает, если не удалось получить курс валюты по умолчанию.
     /// </response>
     /// <returns>
     ///     JSON
-    ///     <example>
-    ///         {
+    /// <example>
+    ///     <code>
+    ///     {
     ///         "code": "RUB",
     ///         "value": 90.50
-    ///         }
-    ///     </example>
+    ///     }
+    ///     </code>
+    /// </example>
     /// </returns>
     [HttpGet]
     public async Task<IActionResult> GetDefaultCurrency(CancellationToken stopToken)
     {
-        var requestUri = $"latest?currencies={_defaultCurrency}&base_currency={_baseCurrency}";
+        return await GetCurrencyInfo(_defaultCurrency, _baseCurrency, stopToken);
+    }
 
-        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, stopToken);
+    /// <summary>
+    /// Получение курса валюты.
+    /// </summary>
+    /// <param name="currencyCode">Код валюты.</param>
+    /// <param name="stopToken">Токен отмены операции.</param>
+    /// <response code="200">
+    ///     Возвращает, если удалось получить курс валюты.
+    /// </response>
+    /// <response code="400">
+    ///     Возвращает, если не удалось получить курс валюты.
+    /// </response>
+    /// <response code="404">
+    ///     Возвращает, если валюта не найдена.
+    /// </response>
+    /// <returns>
+    /// JSON
+    /// <example>
+    ///     <code>
+    ///     {
+    ///         "code": "RUB",
+    ///         "value": 90.50
+    ///     }
+    ///     </code>
+    /// </example>
+    /// </returns>
+    [HttpGet("{currencyCode}")]
+    public async Task<IActionResult> GetCurrency(string currencyCode, CancellationToken stopToken)
+    {
+        return await GetCurrencyInfo(currencyCode, _baseCurrency, stopToken);
+    }
 
-        if (response.IsSuccessStatusCode)
+
+    /// <summary>
+    /// Получение курса валюты на определенную дату.
+    /// </summary>
+    /// <param name="currencyCode">Код валюты.</param>
+    /// <param name="date">Дата в формате yyyy-MM-dd.</param>
+    /// <param name="stopToken">Токен отмены операции.</param>
+    /// <response code="200">
+    ///     Возвращает, если удалось получить курс валюты.
+    /// </response>
+    /// <response code="400">
+    ///     Возвращает, если не удалось получить курс валюты.
+    /// </response>
+    /// <response code="404">
+    ///     Возвращает, если валюта не найдена.
+    /// </response>
+    /// <returns>
+    /// JSON
+    /// <example>
+    ///     <code>
+    ///     {
+    ///         "date": "2020-12-25",
+    ///         "code": "RUB",
+    ///         "value": 90.50
+    ///     }
+    ///     </code>
+    /// </example>
+    /// </returns>
+    [HttpGet("{currencyCode}/{date}")]
+    public async Task<IActionResult> GetCurrency(string currencyCode, DateOnly date, CancellationToken stopToken)
+    {
+        var dateFormatted = date.ToString("yyyy-MM-dd");
+
+        return await GetCurrencyInfo(currencyCode, _baseCurrency, stopToken, dateFormatted);
+    }
+
+    /// <summary>
+    /// Получение текущих настроек приложения.
+    /// </summary>
+    /// <param name="stopToken">Токен отмены операции.</param>
+    /// <response code="200">
+    ///     Возвращает, если удалось получить настройки.
+    /// </response>
+    /// <response code="400">
+    ///     Возвращает, если не удалось получить настройки.
+    /// </response>
+    /// <returns>
+    /// JSON
+    /// <example>
+    ///     <code>
+    ///     {
+    ///         "defaultCurrency": "RUB",
+    ///         "baseCurrency": "USD",
+    ///         "requestLimit": 300,
+    ///         "requestCount": 0,
+    ///         "currencyRoundCount": 2
+    ///     }
+    ///     </code>
+    /// </example>
+    /// </returns>
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettingsInfo(CancellationToken stopToken)
+    {
+        return new JsonResult(new
+                              {
+                                  defaultCurrency    = _defaultCurrency,
+                                  baseCurrency       = _baseCurrency,
+                                  requestLimit       = await _httpClient.GetLimitAsync(stopToken),
+                                  requestCount       = await _httpClient.GetUsedAsync(stopToken),
+                                  currencyRoundCount = _decimalPlace
+                              });
+    }
+
+    private async Task<IActionResult> GetCurrencyInfo(string            defaultCurrency,
+                                                      string            baseCurrency,
+                                                      CancellationToken stopToken,
+                                                      string?           date = null)
+    {
+
+        decimal value = await _httpClient.GetCurrencyValue(defaultCurrency, baseCurrency, date, stopToken);
+
+        return ReturnJson(Math.Round(value, _decimalPlace));
+
+        IActionResult ReturnJson(decimal roundedValue)
         {
-            string  responseBody    = await response.Content.ReadAsStringAsync(stopToken);
-            dynamic responseParsed  = JObject.Parse(responseBody);
-            JObject dataSection     = responseParsed.data;
-            var     currencySection = dataSection.Value<dynamic>(_defaultCurrency)!;
-            decimal value           = currencySection.value;
-            decimal roundedValue    = Math.Round(value, _decimalPlace);
+            if (date is null)
+            {
+                return new JsonResult(new
+                                      {
+                                          code  = defaultCurrency,
+                                          value = roundedValue,
+                                      });
+            }
 
             return new JsonResult(new
                                   {
-                                      code  = _defaultCurrency,
+                                      date,
+                                      code  = defaultCurrency,
                                       value = roundedValue,
                                   });
         }
-
-        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-        {
-            throw new CurrencyNotFoundException(nameof(_defaultCurrency), _defaultCurrency);
-        }
-
-        throw new BadHttpRequestException(response.Headers.ToString());
     }
 }
