@@ -5,80 +5,81 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 
-namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
+namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
+
+/// <summary>
+///     Контроллер для работы с курсами валют.
+/// </summary>
+[Route("currency")]
+[ApiController]
+public class CurrencyApiController : ControllerBase
 {
+    private readonly string     _baseCurrency;
+    private readonly int        _decimalPlace;
+    private readonly string     _defaultCurrency;
+    private readonly HttpClient _httpClient;
+
     /// <summary>
-    /// Контроллер для работы с курсами валют.
+    ///     Инициализация контроллера курсов валют.
     /// </summary>
-    [Route("currency")]
-    [ApiController]
-    public class CurrencyApiController : ControllerBase
+    /// <param name="clientFactory">Фабрика создания HTTP-клиента.</param>
+    /// <param name="currenciesSettings">Настройки получения информации о валютах.</param>
+    public CurrencyApiController(IHttpClientFactory           clientFactory,
+                                 IOptions<CurrenciesSettings> currenciesSettings)
     {
-        private readonly HttpClient _httpClient;
-        private readonly string     _baseCurrency;
-        private readonly string     _defaultCurrency;
-        private readonly int        _decimalPlace;
+        _httpClient = clientFactory.CreateClient("DefaultClient");
 
-        /// <summary>
-        /// Инициализация контроллера курсов валют.
-        /// </summary>
-        /// <param name="clientFactory">Фабрика создания HTTP-клиента.</param>
-        /// <param name="currenciesSettings">Настройки получения информации о валютах.</param>
-        public CurrencyApiController(IHttpClientFactory           clientFactory,
-                                     IOptions<CurrenciesSettings> currenciesSettings)
+        _baseCurrency    = currenciesSettings.Value.BaseCurrency;
+        _defaultCurrency = currenciesSettings.Value.DefaultCurrency;
+        _decimalPlace    = currenciesSettings.Value.DecimalPlace;
+    }
+
+    /// <summary>
+    ///     Получение курса валюты по умолчанию.
+    /// </summary>
+    /// <response code="200">
+    ///     Возвращает, если удалось получить курс валюты по умолчанию от api.currencyapi.com.
+    /// </response>
+    /// <response code="400">
+    ///     Возвращает, если не удалось получить курс валюты по умолчанию от api.currencyapi.com.
+    /// </response>
+    /// <returns>
+    ///     JSON
+    ///     <example>
+    ///         {
+    ///         "code": "RUB",
+    ///         "value": 90.50
+    ///         }
+    ///     </example>
+    /// </returns>
+    [HttpGet]
+    public async Task<IActionResult> GetDefaultCurrency(CancellationToken stopToken)
+    {
+        var requestUri = $"latest?currencies={_defaultCurrency}&base_currency={_baseCurrency}";
+
+        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, stopToken);
+
+        if (response.IsSuccessStatusCode)
         {
-            this._httpClient = clientFactory.CreateClient("DefaultClient");
+            string  responseBody    = await response.Content.ReadAsStringAsync(stopToken);
+            dynamic responseParsed  = JObject.Parse(responseBody);
+            JObject dataSection     = responseParsed.data;
+            var     currencySection = dataSection.Value<dynamic>(_defaultCurrency)!;
+            decimal value           = currencySection.value;
+            decimal roundedValue    = Math.Round(value, _decimalPlace);
 
-            this._baseCurrency    = currenciesSettings.Value.BaseCurrency;
-            this._defaultCurrency = currenciesSettings.Value.DefaultCurrency;
-            this._decimalPlace    = currenciesSettings.Value.DecimalPlace;
+            return new JsonResult(new
+                                  {
+                                      code  = _defaultCurrency,
+                                      value = roundedValue,
+                                  });
         }
 
-        /// <summary>
-        /// Получение курса валюты по умолчанию.
-        /// </summary>
-        /// <response code="200">
-        /// Возвращает, если удалось получить курс валюты по умолчанию от api.currencyapi.com.
-        /// </response>
-        /// <response code="400">
-        /// Возвращает, если не удалось получить курс валюты по умолчанию от api.currencyapi.com.
-        /// </response>
-        /// <returns>
-        /// JSON
-        /// <example>
-        /// {
-        ///    "code": "RUB",
-        ///    "value": 90.50
-        /// }
-        /// </example>
-        /// </returns>
-        [HttpGet]
-        public async Task<IActionResult> GetDefaultCurrency(CancellationToken stopToken)
+        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
         {
-            var requestUri = $"latest?currencies={this._defaultCurrency}&base_currency={this._baseCurrency}";
-            HttpResponseMessage response = await this._httpClient.GetAsync(requestUri, stopToken);
-
-            if (response.IsSuccessStatusCode)
-            {
-                string  responseBody    = await response.Content.ReadAsStringAsync(stopToken);
-                dynamic responseParsed  = JObject.Parse(responseBody);
-                JObject dataSection     = responseParsed.data;
-                var     currencySection = dataSection.Value<dynamic>(this._defaultCurrency)!;
-                decimal roundedValue    = Math.Round(currencySection.value, this._decimalPlace);
-
-                return new JsonResult(new
-                                      {
-                                          code  = this._defaultCurrency,
-                                          value = roundedValue
-                                      });
-            }
-
-            if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-            {
-                throw new CurrencyNotFoundException(nameof(this._defaultCurrency), this._defaultCurrency);
-            }
-
-            throw new BadHttpRequestException(response.Headers.ToString());
+            throw new CurrencyNotFoundException(nameof(_defaultCurrency), _defaultCurrency);
         }
+
+        throw new BadHttpRequestException(response.Headers.ToString());
     }
 }
