@@ -23,7 +23,7 @@ internal class ExceptionFilter : IExceptionFilter
                 _logger.LogError("API request limit exceeded\n{Message}", exception.Message);
                 context.Result = new ObjectResult(exception.Message)
                                  {
-                                     StatusCode = 429
+                                     StatusCode = 429,
                                  };
 
                 break;
@@ -35,7 +35,7 @@ internal class ExceptionFilter : IExceptionFilter
                 _logger.LogError("Exception: {Message}", exception.Message);
                 context.Result = new ObjectResult(exception.Message)
                                  {
-                                     StatusCode = 500
+                                     StatusCode = 500,
                                  };
 
                 break;

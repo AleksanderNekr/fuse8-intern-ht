@@ -1,4 +1,6 @@
-﻿namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
+﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
+
+namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
 
 internal class ApiKeyHandler : DelegatingHandler
 {
@@ -12,10 +14,10 @@ internal class ApiKeyHandler : DelegatingHandler
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
                                                            CancellationToken  cancellationToken)
     {
-        var apiKey = _configuration.GetValue<string>("API_KEY");
+        var apiKey = _configuration.GetValue<string>(CurrencyApiConstants.ApiSettingsKey);
         if (!string.IsNullOrEmpty(apiKey))
         {
-            request.Headers.Add("apikey", apiKey);
+            request.Headers.Add(CurrencyApiConstants.ApiKeyHeader, apiKey);
         }
 
         return base.SendAsync(request, cancellationToken);

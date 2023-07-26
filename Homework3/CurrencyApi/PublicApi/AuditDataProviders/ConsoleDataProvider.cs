@@ -10,7 +10,7 @@ internal sealed class ConsoleDataProvider : AuditDataProvider
         string json = JsonConvert.SerializeObject(auditEvent,
                                                   new JsonSerializerSettings
                                                   {
-                                                      ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                                                      ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
                                                   });
 
         Console.WriteLine(json);

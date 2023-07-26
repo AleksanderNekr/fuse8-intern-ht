@@ -1,4 +1,5 @@
 using System.Net;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
 using Microsoft.AspNetCore.Mvc;
@@ -24,10 +25,10 @@ public class CurrencyApiController : ControllerBase
     /// </summary>
     /// <param name="clientFactory">Фабрика создания HTTP-клиента.</param>
     /// <param name="currenciesSettings">Настройки получения информации о валютах.</param>
-    public CurrencyApiController(IHttpClientFactory           clientFactory,
+    public CurrencyApiController(IHttpClientFactory                  clientFactory,
                                  IOptionsMonitor<CurrenciesSettings> currenciesSettings)
     {
-        _httpClient = clientFactory.CreateClient("DefaultClient");
+        _httpClient = clientFactory.CreateClient(CurrencyApiConstants.DefaultClientName);
 
         _baseCurrency    = currenciesSettings.CurrentValue.BaseCurrency;
         _defaultCurrency = currenciesSettings.CurrentValue.DefaultCurrency;

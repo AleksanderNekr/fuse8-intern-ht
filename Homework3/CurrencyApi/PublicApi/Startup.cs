@@ -1,12 +1,12 @@
-﻿using System.Configuration;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using Audit.Core;
 using Audit.Http;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.AuditDataProviders;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
-using Configuration = Audit.Core.Configuration;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi;
 
@@ -49,7 +49,7 @@ public class Startup
         services.AddHttpLogging(static options =>
                                 {
                                     options.LoggingFields = HttpLoggingFields.RequestMethod | HttpLoggingFields.Response;
-                                    options.MediaTypeOptions.AddText("application/javascript");
+                                    options.MediaTypeOptions.AddText("application/json");
                                 });
 
         Configuration.Setup()
@@ -57,8 +57,8 @@ public class Startup
 
         services.AddTransient<ApiKeyHandler>();
 
-        services.AddHttpClient("DefaultClient",
-                               static client => client.BaseAddress = new Uri("https://api.currencyapi.com/v3/"))
+        services.AddHttpClient(CurrencyApiConstants.DefaultClientName,
+                               static client => client.BaseAddress = new Uri(CurrencyApiConstants.ApiBaseUri))
                 .AddAuditHandler(static configurator =>
                                  {
                                      configurator.IncludeRequestBody()
@@ -69,7 +69,8 @@ public class Startup
                                  })
                 .AddHttpMessageHandler<ApiKeyHandler>();
 
-        IConfigurationSection currenciesSection = _configuration.GetRequiredSection("Currencies");
+        IConfigurationSection currenciesSection =
+            _configuration.GetRequiredSection(CurrencyApiConstants.CurrenciesSectionName);
         services.Configure<CurrenciesSettings>(currenciesSection);
     }
 
