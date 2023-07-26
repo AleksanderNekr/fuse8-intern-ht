@@ -6,6 +6,7 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
+using Configuration = Audit.Core.Configuration;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi;
 
@@ -39,7 +40,7 @@ public class Startup
                                                       {
                                                           Title       = "API",
                                                           Version     = "v1",
-                                                          Description = "Test API"
+                                                          Description = "Test API",
                                                       });
                                    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
                                                                            $"{typeof(Program).Assembly.GetName().Name}.xml"),
@@ -51,17 +52,13 @@ public class Startup
                                     options.MediaTypeOptions.AddText("application/javascript");
                                 });
 
-        Audit.Core.Configuration.Setup()
-             .UseCustomProvider(new ConsoleDataProvider());
+        Configuration.Setup()
+                     .UseCustomProvider(new ConsoleDataProvider());
+
+        services.AddTransient<ApiKeyHandler>();
 
         services.AddHttpClient("DefaultClient",
-                               client =>
-                               {
-                                   string apiKey = this._configuration.GetValue<string>("API_KEY")
-                                                ?? throw new SettingsPropertyNotFoundException("API key not found");
-                                   client.BaseAddress = new Uri("https://api.currencyapi.com/v3/");
-                                   client.DefaultRequestHeaders.Add("apikey", apiKey);
-                               })
+                               static client => client.BaseAddress = new Uri("https://api.currencyapi.com/v3/"))
                 .AddAuditHandler(static configurator =>
                                  {
                                      configurator.IncludeRequestBody()
@@ -69,9 +66,10 @@ public class Startup
                                                  .IncludeResponseBody()
                                                  .IncludeResponseHeaders()
                                                  .IncludeContentHeaders();
-                                 });
+                                 })
+                .AddHttpMessageHandler<ApiKeyHandler>();
 
-        IConfigurationSection currenciesSection = this._configuration.GetRequiredSection("Currencies");
+        IConfigurationSection currenciesSection = _configuration.GetRequiredSection("Currencies");
         services.Configure<CurrenciesSettings>(currenciesSection);
     }
 
