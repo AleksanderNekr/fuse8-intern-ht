@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using Audit.Http;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.AuditDataProviders;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
@@ -81,6 +82,8 @@ public class Startup
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+
+        app.UseMiddleware<CheckStatusMiddleware>();
 
         app.UseRouting()
            .UseEndpoints(static endpoints => endpoints.MapControllers());
