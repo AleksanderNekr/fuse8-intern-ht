@@ -26,7 +26,7 @@ public sealed class CheckStatusMiddleware
         await _next(context);
     }
 
-    private async Task<int> GetRemainingRequestsAsync(CancellationToken stopToken)
+    private async ValueTask<int> GetRemainingRequestsAsync(CancellationToken stopToken)
     {
         const string        requestUri = "status";
         HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
