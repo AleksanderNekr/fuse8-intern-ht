@@ -1,10 +1,10 @@
 ﻿namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 
-public sealed class CurrenciesSettings
+public sealed record CurrenciesSettings
 {
-    public string DefaultCurrency { get; set; } = null!;
+    public required string DefaultCurrency { get; init; }
 
-    public string BaseCurrency { get; set; } = null!;
+    public required string BaseCurrency { get; init; }
 
-    public int DecimalPlace { get; set; }
+    public required int DecimalPlace { get; init; }
 }

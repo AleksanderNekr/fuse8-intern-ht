@@ -2,14 +2,26 @@
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 
-public class MonthSection
+/// <summary>
+///     Модель секции данных о запросах на текущий месяц.
+/// </summary>
+public readonly record struct MonthSection
 {
+    /// <summary>
+    ///     Всего запросов.
+    /// </summary>
     [JsonPropertyName("total")]
-    public int Total { get; init; }
+    public required int Total { get; init; }
 
+    /// <summary>
+    ///     Использовано запросов.
+    /// </summary>
     [JsonPropertyName("used")]
-    public int Used { get; init; }
+    public required int Used { get; init; }
 
+    /// <summary>
+    ///     Осталось запросов.
+    /// </summary>
     [JsonPropertyName("remaining")]
-    public int Remaining { get; init; }
+    public required int Remaining { get; init; }
 }
