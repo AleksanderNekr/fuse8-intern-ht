@@ -2,6 +2,7 @@
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Newtonsoft.Json.Linq;
+using NuGet.ProjectModel;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 
@@ -85,8 +86,8 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
         string  responseBody   = await response.Content.ReadAsStringAsync(stopToken);
         JObject responseParsed = JObject.Parse(responseBody);
-        var     quotasSection  = responseParsed.GetValue("quotas")!.ToObject<JObject>()!;
-        var     monthSection   = quotasSection.GetValue("month")!.ToObject<MonthSection>();
+        var     quotasSection  = responseParsed.GetValue<JObject>("quotas");
+        var     monthSection   = quotasSection.GetValue<JObject>("month").ToObject<MonthSection>();
 
         return monthSection;
     }
@@ -103,9 +104,9 @@ public sealed class CurrencyApiService : ICurrencyApiService
     private static decimal GetCurrencyFromResponse(string currency, string responseBody)
     {
         JObject responseParsed  = JObject.Parse(responseBody);
-        var     dataSection     = responseParsed.GetValue("data")!.ToObject<JObject>()!;
-        var     currencySection = dataSection.GetValue(currency)!.ToObject<JObject>()!;
-        var     value           = currencySection.GetValue("value")!.ToObject<decimal>();
+        var     dataSection     = responseParsed.GetValue<JObject>("data");
+        var     currencySection = dataSection.GetValue<JObject>(currency);
+        var     value           = currencySection.GetValue<decimal>("value");
 
         return value;
     }
