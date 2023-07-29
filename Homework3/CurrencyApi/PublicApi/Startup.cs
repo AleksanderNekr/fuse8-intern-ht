@@ -79,8 +79,6 @@ public class Startup
             app.UseSwaggerUI();
         }
 
-        app.UseMiddleware<CheckStatusMiddleware>();
-
         app.UseRouting()
            .UseEndpoints(static endpoints => endpoints.MapControllers());
 
