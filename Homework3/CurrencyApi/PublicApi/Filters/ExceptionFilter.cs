@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
+namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 
 internal class ExceptionFilter : IExceptionFilter
 {

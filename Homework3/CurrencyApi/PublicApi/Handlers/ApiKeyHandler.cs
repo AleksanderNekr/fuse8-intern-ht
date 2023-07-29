@@ -1,6 +1,6 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 
-namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
+namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Handlers;
 
 internal class ApiKeyHandler : DelegatingHandler
 {
