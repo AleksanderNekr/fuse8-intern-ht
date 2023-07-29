@@ -90,7 +90,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
         return new MonthSection
                {
-                   Total     = monthSection.GetProperty("limit").GetInt32(),
+                   Total     = monthSection.GetProperty("total").GetInt32(),
                    Remaining = monthSection.GetProperty("remaining").GetInt32(),
                    Used      = monthSection.GetProperty("used").GetInt32()
                };
