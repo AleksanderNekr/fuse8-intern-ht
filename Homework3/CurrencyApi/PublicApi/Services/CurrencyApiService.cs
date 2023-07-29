@@ -117,9 +117,18 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
     private async Task CheckRequestsLimitAsync(CancellationToken stopToken)
     {
-        MonthSection monthSection = await GetMonthSectionAsync(stopToken);
+        const string        requestUri = "status";
+        HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
 
-        if (monthSection.Remaining > 0)
+        response.EnsureSuccessStatusCode();
+
+        string       responseBody   = await response.Content.ReadAsStringAsync(stopToken);
+        JsonDocument responseParsed = JsonDocument.Parse(responseBody);
+        JsonElement  quotasSection  = responseParsed.RootElement.GetProperty("quotas");
+        JsonElement  monthSection   = quotasSection.GetProperty("month");
+        int          remaining      = monthSection.GetProperty("remaining").GetInt32();
+
+        if (remaining > 0)
         {
             return;
         }
