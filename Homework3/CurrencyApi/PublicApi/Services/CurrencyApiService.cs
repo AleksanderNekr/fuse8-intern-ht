@@ -1,8 +1,7 @@
 ﻿using System.Net;
+using System.Text.Json;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
-using Newtonsoft.Json.Linq;
-using NuGet.ProjectModel;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 
@@ -84,12 +83,17 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
         response.EnsureSuccessStatusCode();
 
-        string  responseBody   = await response.Content.ReadAsStringAsync(stopToken);
-        JObject responseParsed = JObject.Parse(responseBody);
-        var     quotasSection  = responseParsed.GetValue<JObject>("quotas");
-        var     monthSection   = quotasSection.GetValue<JObject>("month").ToObject<MonthSection>();
+        string       responseBody   = await response.Content.ReadAsStringAsync(stopToken);
+        JsonDocument responseParsed = JsonDocument.Parse(responseBody);
+        JsonElement  quotasSection  = responseParsed.RootElement.GetProperty("quotas");
+        JsonElement  monthSection   = quotasSection.GetProperty("month");
 
-        return monthSection;
+        return new MonthSection
+               {
+                   Total     = monthSection.GetProperty("limit").GetInt32(),
+                   Remaining = monthSection.GetProperty("remaining").GetInt32(),
+                   Used      = monthSection.GetProperty("used").GetInt32()
+               };
     }
 
     /// <inheritdoc />
@@ -103,10 +107,10 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
     private static decimal GetCurrencyFromResponse(string currency, string responseBody)
     {
-        JObject responseParsed  = JObject.Parse(responseBody);
-        var     dataSection     = responseParsed.GetValue<JObject>("data");
-        var     currencySection = dataSection.GetValue<JObject>(currency);
-        var     value           = currencySection.GetValue<decimal>("value");
+        JsonDocument responseParsed  = JsonDocument.Parse(responseBody);
+        JsonElement  dataSection     = responseParsed.RootElement.GetProperty("data");
+        JsonElement  currencySection = dataSection.GetProperty(currency);
+        decimal      value           = currencySection.GetProperty("value").GetDecimal();
 
         return value;
     }
