@@ -4,7 +4,7 @@ using Audit.Http;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.AuditDataProviders;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
 
