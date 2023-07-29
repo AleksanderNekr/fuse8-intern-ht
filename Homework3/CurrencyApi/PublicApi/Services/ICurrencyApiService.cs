@@ -20,9 +20,9 @@ public interface ICurrencyApiService
     /// <exception cref="CurrencyNotFoundException">Не найдена валюта.</exception>
     /// <exception cref="HttpRequestException">HTTP-ответ был не успешен.</exception>
     public Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
-                                                         string            baseCurrency,
-                                                         int               decimalPlace,
-                                                         CancellationToken stopToken);
+                                                   string            baseCurrency,
+                                                   int               decimalPlace,
+                                                   CancellationToken stopToken);
 
     /// <summary>
     ///     Получение информации о валюте относительно базовой на определенную дату.
@@ -53,7 +53,7 @@ public interface ICurrencyApiService
     public Task<MonthSection> GetMonthSectionAsync(CancellationToken stopToken);
 
     /// <summary>
-    /// Проверяет, доступен ли сервер API.
+    ///     Проверяет, доступен ли сервер API.
     /// </summary>
     /// <param name="stopToken">Токен отмены операции.</param>
     /// <returns>true – удалось подключиться к серверу, false – не удалось.</returns>

@@ -18,7 +18,7 @@ public class CurrencyApiController : ControllerBase
     /// <summary>
     ///     Инициализация контроллера курсов валют.
     /// </summary>
-    /// <param name="service"><see cref="ICurrencyApiService"/> сервис получения информации от CurrencyApi.</param>
+    /// <param name="service"><see cref="ICurrencyApiService" /> сервис получения информации от CurrencyApi.</param>
     /// <param name="optionsMonitor">Настройки текущего API.</param>
     public CurrencyApiController(ICurrencyApiService                 service,
                                  IOptionsMonitor<CurrenciesSettings> optionsMonitor)

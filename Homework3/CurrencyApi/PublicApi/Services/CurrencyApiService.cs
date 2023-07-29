@@ -114,7 +114,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
     {
         MonthSection monthSection = await GetMonthSectionAsync(stopToken);
 
-        if(monthSection.Remaining > 0)
+        if (monthSection.Remaining > 0)
         {
             return;
         }

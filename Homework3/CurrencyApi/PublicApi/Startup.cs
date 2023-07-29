@@ -9,7 +9,6 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
-using NuGet.Protocol;
 using Serilog;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi;
