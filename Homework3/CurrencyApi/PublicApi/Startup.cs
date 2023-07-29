@@ -52,9 +52,6 @@ public class Startup
                                     options.MediaTypeOptions.AddText("application/json");
                                 });
 
-        Configuration.Setup()
-                     .UseCustomProvider(new ConsoleDataProvider());
-
         services.AddTransient<ApiKeyHandler>();
 
         services.AddHttpClient(CurrencyApiConstants.DefaultClientName,
@@ -88,5 +85,9 @@ public class Startup
            .UseEndpoints(static endpoints => endpoints.MapControllers());
 
         app.UseHttpLogging();
+
+        Configuration.Setup()
+                     .UseCustomProvider(new LoggerDataProvider(app.ApplicationServices
+                                                                  .GetService<ILogger<LoggerDataProvider>>()!));
     }
 }
