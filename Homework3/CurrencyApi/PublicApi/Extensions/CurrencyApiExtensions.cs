@@ -1,34 +1,14 @@
 ﻿using System.Net;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Extensions;
 
 internal static class CurrencyApiExtensions
 {
-    public static async ValueTask<int> GetRemainingAsync(this HttpClient httpClient, CancellationToken stopToken)
-    {
-        dynamic monthSection = await GetMonthSectionAsync(httpClient, stopToken);
-
-        return monthSection.remaining;
-    }
-
-    public static async ValueTask<int> GetLimitAsync(this HttpClient httpClient, CancellationToken stopToken)
-    {
-        dynamic monthSection = await GetMonthSectionAsync(httpClient, stopToken);
-
-        return monthSection.total;
-    }
-
-    public static async ValueTask<int> GetUsedAsync(this HttpClient httpClient, CancellationToken stopToken)
-    {
-        dynamic monthSection = await GetMonthSectionAsync(httpClient, stopToken);
-
-        return monthSection.used;
-    }
-
-    private static async Task<dynamic> GetMonthSectionAsync(HttpClient httpClient, CancellationToken stopToken)
+    public static async Task<MonthSection> GetMonthSectionAsync(HttpClient httpClient, CancellationToken stopToken)
     {
         const string        requestUri = CurrencyApiConstants.ApiStatusRequest;
         HttpResponseMessage response   = await httpClient.GetAsync(requestUri, stopToken);
@@ -39,10 +19,11 @@ internal static class CurrencyApiExtensions
         }
 
         string  responseBody   = await response.Content.ReadAsStringAsync(stopToken);
-        dynamic responseParsed = JObject.Parse(responseBody);
-        dynamic quotasSection  = responseParsed.quotas;
+        JObject responseParsed = JObject.Parse(responseBody);
+        var     quotasSection  = (JObject)responseParsed.GetValue("quotas")!;
+        var     monthSection   = quotasSection.GetValue("month")!.ToObject<MonthSection>()!;
 
-        return quotasSection.month;
+        return monthSection;
     }
 
     public static async Task<decimal> GetCurrencyValue(this HttpClient   httpClient,

@@ -1,6 +1,7 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Extensions;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
 
@@ -18,8 +19,8 @@ public sealed class CheckStatusMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        int remaining = await _httpClient.GetRemainingAsync(context.RequestAborted);
-        if (remaining <= 0)
+        MonthSection monthSection = await CurrencyApiExtensions.GetMonthSectionAsync(_httpClient, context.RequestAborted);
+        if (monthSection.Remaining <= 0)
         {
             throw new ApiRequestLimitException();
         }
