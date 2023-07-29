@@ -1,4 +1,4 @@
-﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
+﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using static Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers.HealthCheckResult;
 
@@ -10,11 +10,11 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
 [Route("healthcheck")]
 public class HealthCheckController : ControllerBase
 {
-    private readonly HttpClient _externalHttpClient;
+    private readonly ICurrencyApiService _externalApiService;
 
-    public HealthCheckController(IHttpClientFactory clientFactory)
+    public HealthCheckController(ICurrencyApiService externalApiService)
     {
-        _externalHttpClient = clientFactory.CreateClient(CurrencyApiConstants.DefaultClientName);
+        _externalApiService = externalApiService;
     }
 
     /// <summary>
@@ -39,13 +39,11 @@ public class HealthCheckController : ControllerBase
             return new HealthCheckResult { Status = CheckStatus.Ok, CheckedOn = DateTimeOffset.Now };
         }
 
-        const string        requestUri = CurrencyApiConstants.ApiStatusRequest;
-        HttpResponseMessage response   = await _externalHttpClient.GetAsync(requestUri, stopToken);
+        bool isConnected = await _externalApiService.IsConnectedAsync(stopToken);
 
-        return response.IsSuccessStatusCode
+        return isConnected
                    ? new HealthCheckResult { Status = CheckStatus.Ok, CheckedOn     = DateTimeOffset.Now }
                    : new HealthCheckResult { Status = CheckStatus.Failed, CheckedOn = DateTimeOffset.Now };
-
     }
 }
 
