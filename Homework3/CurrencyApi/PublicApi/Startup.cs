@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Audit.Core;
 using Audit.Http;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.AuditDataProviders;
+using Audit.Serilog.Configuration;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Handlers;
@@ -9,6 +9,8 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
+using NuGet.Protocol;
+using Serilog;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi;
 
@@ -69,6 +71,38 @@ public class Startup
                             })
            .AddHttpMessageHandler<ApiKeyHandler>();
 
+        Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(_configuration)
+                    .WriteTo.Console()
+                    .CreateLogger();
+
+        services.AddLogging(static builder =>
+                            {
+                                builder.ClearProviders();
+                                builder.AddSerilog(dispose: true);
+                            });
+
+        Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
+
+        static void ConfigureAuditSerilog(ISerilogConfigurator configurator)
+        {
+            configurator.Message(static @event =>
+                                 {
+                                     if (@event is not AuditEventHttpClient httpClientEvent)
+                                     {
+                                         return @event.ToJson();
+                                     }
+
+                                     object? contentBody = httpClientEvent.Action.Response.Content.Body;
+                                     if (contentBody is string { Length: > 1000 } body)
+                                     {
+                                         httpClientEvent.Action.Response.Content.Body = body[..1000] + "<...>";
+                                     }
+
+                                     return @event.ToJson();
+                                 });
+        }
+
         IConfigurationSection currenciesSection =
             _configuration.GetRequiredSection(CurrencyApiConstants.CurrenciesSectionName);
         services.Configure<CurrenciesSettings>(currenciesSection);
@@ -86,9 +120,5 @@ public class Startup
            .UseEndpoints(static endpoints => endpoints.MapControllers());
 
         app.UseHttpLogging();
-
-        Configuration.Setup()
-                     .UseCustomProvider(new LoggerDataProvider(app.ApplicationServices
-                                                                  .GetService<ILogger<LoggerDataProvider>>()!));
     }
 }
