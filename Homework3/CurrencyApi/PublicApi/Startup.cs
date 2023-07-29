@@ -3,8 +3,10 @@ using Audit.Core;
 using Audit.Http;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.AuditDataProviders;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Middlewares;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Handlers;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
 
@@ -54,17 +56,18 @@ public class Startup
 
         services.AddTransient<ApiKeyHandler>();
 
-        services.AddHttpClient(CurrencyApiConstants.DefaultClientName,
-                               static client => client.BaseAddress = new Uri(CurrencyApiConstants.ApiBaseUri))
-                .AddAuditHandler(static configurator =>
-                                 {
-                                     configurator.IncludeRequestBody()
-                                                 .IncludeRequestHeaders()
-                                                 .IncludeResponseBody()
-                                                 .IncludeResponseHeaders()
-                                                 .IncludeContentHeaders();
-                                 })
-                .AddHttpMessageHandler<ApiKeyHandler>();
+        var baseAddress = _configuration.GetValue<string>("BaseApiAddress")!;
+        services
+           .AddHttpClient<ICurrencyApiService, CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
+           .AddAuditHandler(static configurator =>
+                            {
+                                configurator.IncludeRequestBody()
+                                            .IncludeRequestHeaders()
+                                            .IncludeResponseBody()
+                                            .IncludeResponseHeaders()
+                                            .IncludeContentHeaders();
+                            })
+           .AddHttpMessageHandler<ApiKeyHandler>();
 
         IConfigurationSection currenciesSection =
             _configuration.GetRequiredSection(CurrencyApiConstants.CurrenciesSectionName);
