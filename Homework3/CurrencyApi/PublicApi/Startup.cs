@@ -92,7 +92,7 @@ public class Startup
                                          return @event.ToJson();
                                      }
 
-                                     object? contentBody = httpClientEvent.Action.Response.Content.Body;
+                                     object? contentBody = httpClientEvent.Action?.Response?.Content?.Body;
                                      if (contentBody is string { Length: > 1000 } body)
                                      {
                                          httpClientEvent.Action.Response.Content.Body = body[..1000] + "<...>";
