@@ -1,6 +1,6 @@
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Extensions;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Settings;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -154,12 +154,14 @@ public class CurrencyApiController : ControllerBase
     [HttpGet("settings")]
     public async Task<IActionResult> GetSettingsInfo(CancellationToken stopToken)
     {
+        MonthSection monthSection = await CurrencyApiExtensions.GetMonthSectionAsync(_httpClient, stopToken);
+
         return new JsonResult(new
                               {
                                   defaultCurrency    = _defaultCurrency,
                                   baseCurrency       = _baseCurrency,
-                                  requestLimit       = await _httpClient.GetLimitAsync(stopToken),
-                                  requestCount       = await _httpClient.GetUsedAsync(stopToken),
+                                  requestLimit       = monthSection.Total,
+                                  requestCount       = monthSection.Used,
                                   currencyRoundCount = _decimalPlace
                               });
     }
