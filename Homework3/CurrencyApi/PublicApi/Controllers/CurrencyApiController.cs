@@ -12,8 +12,9 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
 [ApiController]
 public class CurrencyApiController : ControllerBase
 {
-    private readonly ICurrencyApiService _service;
-    private readonly CurrenciesSettings  _settings;
+    private readonly ICurrencyApiService            _service;
+    private readonly CurrenciesSettings             _settings;
+    private readonly ILogger<CurrencyApiController> _logger;
 
     /// <summary>
     ///     Инициализация контроллера курсов валют.
@@ -21,10 +22,11 @@ public class CurrencyApiController : ControllerBase
     /// <param name="service"><see cref="ICurrencyApiService" /> сервис получения информации от CurrencyApi.</param>
     /// <param name="optionsMonitor">Настройки текущего API.</param>
     public CurrencyApiController(ICurrencyApiService                 service,
-                                 IOptionsMonitor<CurrenciesSettings> optionsMonitor)
+                                 IOptionsMonitor<CurrenciesSettings> optionsMonitor, ILogger<CurrencyApiController> logger)
     {
-        _service  = service;
-        _settings = optionsMonitor.CurrentValue;
+        _service     = service;
+        _logger = logger;
+        _settings    = optionsMonitor.CurrentValue;
     }
 
     /// <summary>
@@ -51,6 +53,8 @@ public class CurrencyApiController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CurrencyInfo>> GetDefaultCurrency(CancellationToken stopToken)
     {
+        _logger.LogError("TEST ERROR LOG");
+
         return await _service.GetCurrencyInfoAsync(_settings.DefaultCurrency,
                                                    _settings.BaseCurrency,
                                                    _settings.DecimalPlace,
