@@ -70,10 +70,8 @@ public class Startup
                             })
            .AddHttpMessageHandler<ApiKeyHandler>();
 
-        Log.Logger = new LoggerConfiguration()
-                    .ReadFrom.Configuration(_configuration)
-                    .WriteTo.Console()
-                    .CreateLogger();
+        Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
+                                              .CreateLogger();
 
         services.AddLogging(static builder =>
                             {
