@@ -20,19 +20,3 @@ internal interface ICurrencyAPI
 	Task<CurrenciesOnDate> GetAllCurrenciesOnDateAsync(string            baseCurrency, DateOnly date,
 	                                                   CancellationToken cancellationToken);
 }
-
-// Данные модели использовать не обязательно, можно реализовать свои
-
-/// <summary>
-///     Курс валюты
-/// </summary>
-/// <param name="Code">Код валюты</param>
-/// <param name="Value">Значение курса валют, относительно базовой валюты</param>
-internal record Currency(string Code, decimal Value);
-
-/// <summary>
-///     Курсы валют на конкретную дату
-/// </summary>
-/// <param name="LastUpdatedAt">Дата обновления данных</param>
-/// <param name="Currencies">Список курсов валют</param>
-internal record CurrenciesOnDate(DateTime LastUpdatedAt, Currency[] Currencies);
