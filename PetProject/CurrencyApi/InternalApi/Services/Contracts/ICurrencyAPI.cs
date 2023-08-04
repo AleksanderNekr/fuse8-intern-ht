@@ -1,4 +1,6 @@
-﻿namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 
 internal interface ICurrencyAPI
 {
@@ -8,7 +10,7 @@ internal interface ICurrencyAPI
 	/// <param name="baseCurrency">Базовая валюта, относительно которой необходимо получить курс</param>
 	/// <param name="cancellationToken">Токен отмены</param>
 	/// <returns>Список курсов валют</returns>
-	Task<Currency[]> GetAllCurrentCurrenciesAsync(string baseCurrency, CancellationToken cancellationToken);
+	Task<CurrencyInfo[]> GetAllCurrentCurrenciesAsync(string baseCurrency, CancellationToken cancellationToken);
 
 	/// <summary>
 	///     Получает курс для всех валют, актуальный на <paramref name="date" />
