@@ -19,5 +19,7 @@
         <PackageReference Include="Audit.WebApi" Version="21.0.3"/>
     </ItemGroup>
 
-
+    <ItemGroup>
+        <Folder Include="Cache\"/>
+    </ItemGroup>
 </Project>
