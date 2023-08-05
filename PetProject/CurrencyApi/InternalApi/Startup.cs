@@ -3,6 +3,7 @@ using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Handlers;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
@@ -23,7 +24,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers()
+        services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
                 .AddJsonOptions(static options =>
                                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         services.AddEndpointsApiExplorer();
