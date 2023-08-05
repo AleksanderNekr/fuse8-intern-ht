@@ -7,6 +7,7 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Handlers;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -30,7 +31,7 @@ public class Startup
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(static options =>
                                {
-                                   options.SwaggerDoc("Internal v1",
+                                   options.SwaggerDoc("v1",
                                                       new OpenApiInfo
                                                       {
                                                           Title       = "Internal API",
@@ -49,7 +50,7 @@ public class Startup
         services.AddTransient<ApiKeyHandler>();
 
         var baseAddress = _configuration.GetValue<string>(CurrencyApiConstants.BaseApiAddressSettingsKey)!;
-        services.AddHttpClient<CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
+        services.AddHttpClient<ICurrencyApiService, CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
                 .AddAuditHandler(static configurator =>
                                  {
                                      configurator.IncludeRequestBody()
