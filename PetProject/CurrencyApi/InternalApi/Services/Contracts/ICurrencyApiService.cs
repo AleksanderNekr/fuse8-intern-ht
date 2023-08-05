@@ -35,7 +35,7 @@ public interface ICurrencyApiService
     /// <exception cref="ApiRequestLimitException">HTTP-ответ был не успешен.</exception>
     public Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
                                                    string            baseCurrency,
-                                                   int               decimalPlace,
+                                                   DateOnly          date,
                                                    CancellationToken stopToken);
 
     /// <summary>
@@ -43,7 +43,6 @@ public interface ICurrencyApiService
     /// </summary>
     /// <param name="currency">Валюта.</param>
     /// <param name="baseCurrency">Базовая валюта.</param>
-    /// <param name="decimalPlace">Количество знаков после запятой.</param>
     /// <param name="date">Дата, на которую получена информация.</param>
     /// <param name="stopToken">Токен отмены операции.</param>
     /// <returns>Объект типа <see cref="CurrencyOnDateInfo" />.</returns>
@@ -52,7 +51,6 @@ public interface ICurrencyApiService
     /// <exception cref="HttpRequestException">HTTP-ответ был не успешен.</exception>
     public Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(string            currency,
                                                                string            baseCurrency,
-                                                               int               decimalPlace,
                                                                DateOnly          date,
                                                                CancellationToken stopToken);
 

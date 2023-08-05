@@ -19,7 +19,6 @@ public sealed class CurrencyApiService : ICurrencyApiService
     /// <inheritdoc />
     public async Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
                                                          string            baseCurrency,
-                                                         int               decimalPlace,
                                                          CancellationToken stopToken)
     {
         await CheckRequestsLimitAsync(stopToken);
@@ -36,19 +35,17 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
         string  responseBody = await response.Content.ReadAsStringAsync(stopToken);
         decimal value        = GetCurrencyFromResponse(currency, responseBody);
-        decimal roundedValue = Math.Round(value, decimalPlace);
 
         return new CurrencyInfo
                {
                    Code  = currency,
-                   Value = roundedValue,
+                   Value = value,
                };
     }
 
     /// <inheritdoc />
     public async Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(string            currency,
                                                                      string            baseCurrency,
-                                                                     int               decimalPlace,
                                                                      DateOnly          date,
                                                                      CancellationToken stopToken)
     {
@@ -66,13 +63,12 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
         string  responseBody = await response.Content.ReadAsStringAsync(stopToken);
         decimal value        = GetCurrencyFromResponse(currency, responseBody);
-        decimal roundedValue = Math.Round(value, decimalPlace);
 
         return new CurrencyOnDateInfo
                {
                    Date  = date,
                    Code  = currency,
-                   Value = roundedValue,
+                   Value = value,
                };
     }
 
