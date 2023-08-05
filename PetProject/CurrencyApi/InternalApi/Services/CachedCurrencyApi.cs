@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 
+/// <inheritdoc />
 public class CachedCurrencyApi : ICachedCurrencyAPI
 {
     private readonly ICurrencyApiService          _currencyApi;
@@ -17,13 +18,14 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
     private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(),
                                                                   CacheConstants.CacheFolderName);
 
-
+    /// <inheritdoc cref="ICachedCurrencyAPI" />
     public CachedCurrencyApi(ICurrencyApiService currencyApi, IOptionsMonitor<CurrenciesSettings> currenciesMonitor)
     {
         _currencyApi = currencyApi;
         _settings    = currenciesMonitor.CurrentValue;
     }
 
+    /// <inheritdoc />
     public async Task<CurrencyInfo> GetCurrentCurrencyAsync(string            currencyType,
                                                             CancellationToken cancellationToken)
     {
@@ -51,6 +53,7 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         return currencyInfo;
     }
 
+    /// <inheritdoc />
     public async Task<CurrencyInfo> GetCurrencyOnDateAsync(string            currencyType,
                                                            DateOnly          date,
                                                            CancellationToken cancellationToken)

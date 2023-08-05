@@ -2,7 +2,10 @@
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 
-internal interface ICachedCurrencyAPI
+/// <summary>
+/// Сервис получения данных о курсе валюты, используя кэширование.
+/// </summary>
+public interface ICachedCurrencyAPI
 {
     /// <summary>
     ///     Получает текущий курс

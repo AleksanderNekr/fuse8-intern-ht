@@ -13,6 +13,7 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
     private readonly HttpClient                _httpClient;
     private          IAsyncEnumerable<string>? _currenciesCodes;
 
+    /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
     public CurrencyApiService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -147,6 +148,7 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
         return response.IsSuccessStatusCode;
     }
 
+    /// <inheritdoc />
     public async Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
                                                          string            baseCurrency,
                                                          DateOnly          date,

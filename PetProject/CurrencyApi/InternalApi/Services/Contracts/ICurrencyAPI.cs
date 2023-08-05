@@ -2,6 +2,9 @@
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 
+/// <summary>
+/// Сервис получения данных о курсах всех возможных валют.
+/// </summary>
 public interface ICurrencyAPI
 {
 	/// <summary>
