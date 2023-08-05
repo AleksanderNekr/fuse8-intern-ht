@@ -4,6 +4,7 @@ using Audit.Http;
 using Audit.Serilog.Configuration;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Handlers;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
@@ -66,6 +67,9 @@ public class Startup
                                 builder.AddSerilog(dispose: true);
                             });
         Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
+
+        IConfigurationSection currenciesSection = _configuration.GetSection(CurrencyApiConstants.CurrenciesSettingsKey);
+        services.Configure<CurrenciesSettings>(currenciesSection);
 
         return;
 
