@@ -6,14 +6,28 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 /// <summary>
 ///     Сервис получения данных от CurrencyApi.
 /// </summary>
-internal interface ICurrencyApiService
+public interface ICurrencyApiService
 {
     /// <summary>
     ///     Получение информации о валюте относительно базовой.
     /// </summary>
     /// <param name="currency">Валюта.</param>
     /// <param name="baseCurrency">Базовая валюта.</param>
-    /// <param name="decimalPlace">Количество знаков после запятой.</param>
+    /// <param name="stopToken">Токен отмены операции.</param>
+    /// <returns> Объект типа <see cref="CurrencyInfo" />. </returns>
+    /// <exception cref="CurrencyNotFoundException">Превышен лимит запросов к API.</exception>
+    /// <exception cref="HttpRequestException">Не найдена валюта.</exception>
+    /// <exception cref="ApiRequestLimitException">HTTP-ответ был не успешен.</exception>
+    public Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
+                                                   string            baseCurrency,
+                                                   CancellationToken stopToken);
+
+    /// <summary>
+    ///     Получение информации о валюте относительно базовой.
+    /// </summary>
+    /// <param name="currency">Валюта.</param>
+    /// <param name="baseCurrency">Базовая валюта.</param>
+    /// <param name="date">Дата, на которую получена информация.</param>
     /// <param name="stopToken">Токен отмены операции.</param>
     /// <returns> Объект типа <see cref="CurrencyInfo" />. </returns>
     /// <exception cref="CurrencyNotFoundException">Превышен лимит запросов к API.</exception>
