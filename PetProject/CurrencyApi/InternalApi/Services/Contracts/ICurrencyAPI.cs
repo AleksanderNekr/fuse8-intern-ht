@@ -2,7 +2,7 @@
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 
-internal interface ICurrencyAPI
+public interface ICurrencyAPI
 {
 	/// <summary>
 	///     Получает текущий курс для всех валют
