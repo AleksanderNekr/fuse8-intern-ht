@@ -7,4 +7,9 @@ internal sealed class CurrencyNotFoundException : ArgumentOutOfRangeException
     {
 
     }
+
+    public CurrencyNotFoundException(string? message) : base(message)
+    {
+
+    }
 }

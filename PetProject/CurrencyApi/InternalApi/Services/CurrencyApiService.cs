@@ -65,11 +65,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         var requestUri = $"latest?currencies={currency}&base_currency={baseCurrency}";
 
         HttpResponseMessage response = await _httpClient.GetAsync(requestUri, stopToken);
-        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-        {
-            throw new CurrencyNotFoundException(nameof(currency), currency);
-        }
-
+        response.EnsureCurrencyFound();
         response.EnsureSuccessStatusCode();
 
         string  responseBody = await response.Content.ReadAsStringAsync(stopToken);
@@ -198,5 +194,16 @@ public sealed class CurrencyApiService : ICurrencyApiService
         }
 
         throw new ApiRequestLimitException("API requests limit exceeded!");
+    }
+}
+
+file static class Extensions
+{
+    public static void EnsureCurrencyFound(this HttpResponseMessage response)
+    {
+        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
+        {
+            throw new CurrencyNotFoundException(response.Content.ToString());
+        }
     }
 }
