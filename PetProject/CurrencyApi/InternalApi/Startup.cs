@@ -90,6 +90,8 @@ public class Startup
         IConfigurationSection currenciesSection = _configuration.GetSection(CurrencyApiConstants.CurrenciesSettingsKey);
         services.Configure<CurrenciesSettings>(currenciesSection);
 
+        services.AddGrpc();
+
         return;
 
         static void ConfigureAuditSerilog(ISerilogConfigurator configurator)
