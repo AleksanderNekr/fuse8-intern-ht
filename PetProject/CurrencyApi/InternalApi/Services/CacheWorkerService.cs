@@ -36,29 +36,35 @@ public sealed class CacheWorkerService
         _logger = logger;
     }
 
-    internal async Task SaveToCache(DateTime updatedAt, CurrencyInfo currencyInfo, CancellationToken cancellationToken)
+    internal async Task SaveToCache(DateTime          updatedAt,
+                                    CurrencyInfo[]    currenciesInfo,
+                                    CancellationToken cancellationToken)
     {
         string fileName = DateTimeToFileName(updatedAt);
         string filePath = Path.Combine(CacheFolderPath, fileName);
 
         await using FileStream fileStream = new(filePath, FileMode.CreateNew);
         await JsonSerializer.SerializeAsync(fileStream,
-                                            currencyInfo,
+                                            currenciesInfo,
                                             cancellationToken: cancellationToken,
                                             options: JsonSerializerOptions);
 
-        _logger.LogDebug("Saved to cache {Name}{Newline}{Currency}", fileName, Environment.NewLine, currencyInfo);
+        _logger.LogDebug("Saved to cache {Name}{Newline}{Currency}", fileName, Environment.NewLine, currenciesInfo);
     }
 
-    internal async Task<CurrencyInfo> GetFromCache(FileInfo fileInfo, CancellationToken cancellationToken)
+    internal async Task<CurrencyInfo[]> GetFromCache(FileInfo fileInfo, CancellationToken cancellationToken)
     {
         await using FileStream readFileStream = fileInfo.OpenRead();
-        var currency = await JsonSerializer.DeserializeAsync<CurrencyInfo>(readFileStream,
-                                                                           cancellationToken: cancellationToken,
-                                                                           options: JsonSerializerOptions);
-        _logger.LogDebug("Got currency from cache file {Name}", fileInfo.Name);
+        CurrencyInfo[] currencies = await JsonSerializer.DeserializeAsync<CurrencyInfo[]>(readFileStream,
+                                             cancellationToken: cancellationToken,
+                                             options: JsonSerializerOptions)
+                                 ?? throw new InvalidOperationException("Cannot get data from cache file!");
+        _logger.LogDebug("Got from cache file {Name}{Newline}{Content}",
+                         fileInfo.Name,
+                         Environment.NewLine,
+                         currencies);
 
-        return currency;
+        return currencies;
     }
 
     internal void UpdateCacheInfo()

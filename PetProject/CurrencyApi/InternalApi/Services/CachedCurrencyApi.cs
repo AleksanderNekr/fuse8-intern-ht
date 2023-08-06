@@ -1,8 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Globalization;
-using System.Text.Json;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 using Microsoft.Extensions.Options;
 
@@ -35,26 +31,22 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         _cacheService.UpdateCacheInfo();
         FileInfo? newestFile = _cacheService.TryGetNewestFile();
 
-        CurrencyInfo currencyInfo;
+        CurrencyInfo[] currenciesInfo;
+        CurrencyInfo   currencyInfo;
         if (newestFile is null || _cacheService.CacheIsOlderThan(_settings.CacheRelevanceHours))
         {
             _logger.LogDebug("Did not find relevant cache file");
-            CurrencyInfo[] currenciesInfo = await _currencyApi.GetAllCurrentCurrenciesAsync(
-                                                 _settings.BaseCurrency,
-                                                 cancellationToken);
-            currencyInfo = currenciesInfo.Single(currency => currency.Code == currencyType);
 
-            await _cacheService.SaveToCache(DateTime.Now, currencyInfo, cancellationToken);
+            currenciesInfo = await _currencyApi.GetAllCurrentCurrenciesAsync(_settings.BaseCurrency, cancellationToken);
+            currencyInfo   = currenciesInfo.Single(currency => currency.Code == currencyType);
+
+            await _cacheService.SaveToCache(DateTime.Now, currenciesInfo, cancellationToken);
 
             return currencyInfo;
         }
 
-        currencyInfo = await _cacheService.GetFromCache(newestFile, cancellationToken);
-
-        _logger.LogDebug("Found relevant cache file {Name}{Newline}{Content}",
-                         newestFile.Name,
-                         Environment.NewLine,
-                         currencyInfo);
+        currenciesInfo = await _cacheService.GetFromCache(newestFile, cancellationToken);
+        currencyInfo   = currenciesInfo.Single(currency => currency.Code == currencyType);
 
         return currencyInfo;
     }
@@ -75,19 +67,17 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                      _settings.BaseCurrency,
                                                      date,
                                                      cancellationToken);
-            currencyInfo = currenciesOnDate.Currencies.Single(currency => currency.Code == currencyType);
 
-            await _cacheService.SaveToCache(currenciesOnDate.LastUpdatedAt, currencyInfo, cancellationToken);
+            await _cacheService.SaveToCache(currenciesOnDate.LastUpdatedAt,
+                                            currenciesOnDate.Currencies,
+                                            cancellationToken);
+            currencyInfo = currenciesOnDate.Currencies.Single(currency => currency.Code == currencyType);
 
             return currencyInfo;
         }
 
-        currencyInfo = await _cacheService.GetFromCache(relevantFile, cancellationToken);
-
-        _logger.LogDebug("Found relevant cache file {Name}{Newline}{Content}",
-                         relevantFile.Name,
-                         Environment.NewLine,
-                         currencyInfo);
+        CurrencyInfo[] currencies = await _cacheService.GetFromCache(relevantFile, cancellationToken);
+        currencyInfo = currencies.Single(currency => currency.Code == currencyType);
 
         return currencyInfo;
     }
