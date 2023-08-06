@@ -11,12 +11,10 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 /// <inheritdoc />
 public class CachedCurrencyApi : ICachedCurrencyAPI
 {
-    private readonly ICurrencyApiService          _currencyApi;
-    private readonly CurrenciesSettings           _settings;
-    private          DirectoryInfo?               _cacheDirInfo;
-    private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
     private readonly ICurrencyAPI               _currencyApi;
     private readonly CurrenciesSettings         _settings;
+    private readonly ILogger<CachedCurrencyApi> _logger;
+
     private DirectoryInfo?               _cacheDirInfo;
     private ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
@@ -32,6 +30,7 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
     {
         _currencyApi = currencyApi;
         _settings    = currenciesMonitor.CurrentValue;
+        _logger      = logger;
     }
 
     /// <inheritdoc />
@@ -49,10 +48,7 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         CurrencyInfo currencyInfo;
         if (_cacheFilesInfo.Count == 0 || hourDifference > _settings.CacheRelevanceHours)
         {
-            currencyInfo = await _currencyApi.GetCurrencyInfoAsync(currencyType,
-                                                                   _settings.BaseCurrency,
-                                                                   cancellationToken);
-            await SaveToCache(currencyInfo, cancellationToken);
+            _logger.LogDebug("Did not find relevant cache file");
             CurrencyInfo[] currenciesInfo = await _currencyApi.GetAllCurrentCurrenciesAsync(
                                                  _settings.BaseCurrency,
                                                  cancellationToken);
@@ -65,6 +61,11 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         }
 
         currencyInfo = await GetFromCache(newestFile, cancellationToken);
+
+        _logger.LogDebug("Found relevant cache file {Name}{Newline}{Content}",
+                         newestFile.Name,
+                         Environment.NewLine,
+                         currencyInfo);
 
         return currencyInfo;
     }
@@ -95,14 +96,21 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
 
         currencyInfo = await GetFromCache(relevantFile, cancellationToken);
 
+        _logger.LogDebug("Found relevant cache file {Name}{Newline}{Content}",
+                         relevantFile.Name,
+                         Environment.NewLine,
+                         currencyInfo);
+
         return currencyInfo;
 
         FileInfo? TryGetRelevantFile()
         {
             return _cacheFilesInfo.FirstOrDefault(file =>
                                                   {
-                                                      DateTime dateTimeCreation = DateTime.Parse(file.Name);
-                                                      DateOnly dateCreation     = DateOnly.FromDateTime(dateTimeCreation);
+                                                      DateTime dateTimeCreation =
+                                                          DateTime.Parse(file.Name, DateTimeCulture);
+
+                                                      DateOnly dateCreation = DateOnly.FromDateTime(dateTimeCreation);
 
                                                       return dateCreation == date;
                                                   });
@@ -115,13 +123,16 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
 
         await using FileStream fileStream = new(filePath, FileMode.CreateNew);
         await JsonSerializer.SerializeAsync(fileStream, currencyInfo, cancellationToken: cancellationToken);
+
+        _logger.LogDebug("Saved to cache {Name}{Newline}{Currency}", fileName, Environment.NewLine, currencyInfo);
     }
 
-    private static async Task<CurrencyInfo> GetFromCache(FileInfo fileInfo, CancellationToken cancellationToken)
+    private async Task<CurrencyInfo> GetFromCache(FileInfo fileInfo, CancellationToken cancellationToken)
     {
         await using FileStream readFileStream = fileInfo.OpenRead();
         var currency = await JsonSerializer.DeserializeAsync<CurrencyInfo>(readFileStream,
                                                                            cancellationToken: cancellationToken);
+        _logger.LogDebug("Got currency from cache file {Name}", fileInfo.Name);
 
         return currency;
     }
@@ -141,9 +152,12 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         var cacheDirInfo = new DirectoryInfo(CacheFolderPath);
         if (_cacheDirInfo is not null && DidNotChange())
         {
+            _logger.LogDebug("Cache did not change");
+
             return;
         }
 
+        _logger.LogDebug("Detected cache changes");
         _cacheDirInfo = cacheDirInfo;
         _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(CacheConstants.FilesSearchPattern)
                                        .ToImmutableSortedSet(comparer: new FileInfoComparerByNameReversed());
