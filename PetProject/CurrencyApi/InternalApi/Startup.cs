@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi;
 
 public class Startup
