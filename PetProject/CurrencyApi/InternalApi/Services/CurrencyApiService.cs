@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
@@ -11,6 +10,7 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 public sealed class CurrencyApiService : ICurrencyApiService
 {
     private readonly HttpClient _httpClient;
+    private const    string     CurrenciesSeparator = ",";
 
     /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
     public CurrencyApiService(HttpClient httpClient)
@@ -24,15 +24,18 @@ public sealed class CurrencyApiService : ICurrencyApiService
     {
         await CheckRequestsLimitAsync(cancellationToken);
 
-        IEnumerable<Task<CurrencyInfo>> getCurrencies = Enum.GetValues<CurrencyType>()
-                                                            .Select(code => GetCurrencyInfoAsync(
-                                                                         code,
-                                                                         baseCurrency,
-                                                                         cancellationToken));
+        CurrencyType[] currencies = Enum.GetValues<CurrencyType>();
+        string         separated  = string.Join(CurrenciesSeparator, currencies);
+        var            requestUri = $"latest?currencies={separated}&base_currency={baseCurrency}";
 
-        CurrencyInfo[] currenciesInfo = await Task.WhenAll(getCurrencies);
+        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, cancellationToken);
+        response.EnsureCurrencyFound();
+        response.EnsureSuccessStatusCode();
 
-        return currenciesInfo;
+        string                    responseBody   = await response.Content.ReadAsStringAsync(cancellationToken);
+        IEnumerable<CurrencyInfo> currenciesInfo = GetCurrenciesInfoFromResponse(currencies, responseBody);
+
+        return currenciesInfo.ToArray();
     }
 
     /// <inheritdoc />
@@ -42,17 +45,29 @@ public sealed class CurrencyApiService : ICurrencyApiService
     {
         await CheckRequestsLimitAsync(cancellationToken);
 
-        IEnumerable<Task<CurrencyInfo>> getCurrencies = Enum.GetValues<CurrencyType>()
-                                                            .Select(code => GetCurrencyInfoAsync(
-                                                                         code,
-                                                                         baseCurrency,
-                                                                         date,
-                                                                         cancellationToken));
+        CurrencyType[] currencies = Enum.GetValues<CurrencyType>();
+        string         separated  = string.Join(CurrenciesSeparator, currencies);
+        var            requestUri = $"historical?currencies={separated}&base_currency={baseCurrency}&&date={date}";
 
-        CurrencyInfo[]   currencies       = await Task.WhenAll(getCurrencies);
-        CurrenciesOnDate currenciesOnDate = new(DateTime.UtcNow, currencies);
+        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, cancellationToken);
+        response.EnsureCurrencyFound();
+        response.EnsureSuccessStatusCode();
+
+        string                    responseBody   = await response.Content.ReadAsStringAsync(cancellationToken);
+        IEnumerable<CurrencyInfo> currenciesInfo = GetCurrenciesInfoFromResponse(currencies, responseBody);
+
+        DateTime         dateTimeInfo     = DateTimeFromDate(date);
+        CurrenciesOnDate currenciesOnDate = new(dateTimeInfo, currenciesInfo.ToArray());
 
         return currenciesOnDate;
+
+        static DateTime DateTimeFromDate(DateOnly dateOnly)
+        {
+            TimeOnly timeNow      = TimeOnly.FromDateTime(DateTime.Now);
+            var      dateTimeInfo = dateOnly.ToDateTime(timeNow);
+
+            return dateTimeInfo;
+        }
     }
 
     /// <inheritdoc />
@@ -165,16 +180,6 @@ public sealed class CurrencyApiService : ICurrencyApiService
                };
     }
 
-    private static decimal GetCurrencyFromResponse(CurrencyType currency, string responseBody)
-    {
-        JsonDocument responseParsed  = JsonDocument.Parse(responseBody);
-        JsonElement  dataSection     = responseParsed.RootElement.GetProperty("data");
-        JsonElement  currencySection = dataSection.GetProperty(currency.ToString());
-        decimal      value           = currencySection.GetProperty("value").GetDecimal();
-
-        return value;
-    }
-
     private async Task CheckRequestsLimitAsync(CancellationToken stopToken)
     {
         const string        requestUri = "status";
@@ -194,6 +199,26 @@ public sealed class CurrencyApiService : ICurrencyApiService
         }
 
         throw new ApiRequestLimitException("API requests limit exceeded!");
+    }
+
+    private static decimal GetCurrencyFromResponse(CurrencyType currency, string responseBody)
+    {
+        JsonDocument responseParsed  = JsonDocument.Parse(responseBody);
+        JsonElement  dataSection     = responseParsed.RootElement.GetProperty("data");
+        JsonElement  currencySection = dataSection.GetProperty(currency.ToString());
+        decimal      value           = currencySection.GetProperty("value").GetDecimal();
+
+        return value;
+    }
+
+    private static IEnumerable<CurrencyInfo> GetCurrenciesInfoFromResponse(IEnumerable<CurrencyType> currencies,
+                                                                           string                    responseBody)
+    {
+        return currencies.Select(currency => new CurrencyInfo
+                                             {
+                                                 Code  = currency,
+                                                 Value = GetCurrencyFromResponse(currency, responseBody)
+                                             });
     }
 }
 
