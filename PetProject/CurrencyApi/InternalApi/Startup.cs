@@ -74,16 +74,7 @@ public class Startup
                                             .IncludeResponseBody();
                             })
            .AddHttpMessageHandler<ApiKeyHandler>();
-        services.AddHttpClient<ICachedCurrencyAPI, CachedCurrencyApi>(client => client.BaseAddress = new Uri(baseAddress))
-                .AddAuditHandler(static configurator =>
-                                 {
-                                     configurator.IncludeRequestBody()
-                                                 .IncludeRequestHeaders()
-                                                 .IncludeContentHeaders()
-                                                 .IncludeResponseHeaders()
-                                                 .IncludeResponseBody();
-                                 })
-                .AddHttpMessageHandler<ApiKeyHandler>();
+
 
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
                                               .CreateLogger();
