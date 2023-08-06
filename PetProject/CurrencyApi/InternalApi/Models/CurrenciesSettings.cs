@@ -3,6 +3,11 @@
 /// <summary>
 /// Модель настроек API.
 /// </summary>
-/// <param name="BaseCurrency">Базовая валюта по умолчанию.</param>
-/// <param name="CacheRelevanceHours">Время в часах – срок активности файла кэша.</param>
-public record CurrenciesSettings(string BaseCurrency, int CacheRelevanceHours);
+public sealed record CurrenciesSettings
+{
+    /// <summary>Базовая валюта по умолчанию.</summary>
+    public required string BaseCurrency { get; init; }
+
+    /// <summary>Время в часах – срок активности файла кэша.</summary>
+    public required int CacheRelevanceHours { get; init; }
+}
