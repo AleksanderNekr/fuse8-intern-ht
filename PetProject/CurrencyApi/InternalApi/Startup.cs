@@ -76,7 +76,7 @@ public class Startup
            .AddHttpMessageHandler<ApiKeyHandler>();
 
         services.AddTransient<ICachedCurrencyAPI, CachedCurrencyApi>();
-        services.AddScoped<CacheWorkerService>();
+        services.AddSingleton<CacheWorkerService>();
 
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
                                               .CreateLogger();
