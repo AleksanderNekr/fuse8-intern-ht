@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Globalization;
 using System.Text.Json;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
@@ -14,12 +15,18 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
     private readonly CurrenciesSettings           _settings;
     private          DirectoryInfo?               _cacheDirInfo;
     private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
+    private readonly ICurrencyAPI               _currencyApi;
+    private readonly CurrenciesSettings         _settings;
+    private DirectoryInfo?               _cacheDirInfo;
+    private ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
     private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(),
                                                                   CacheConstants.CacheFolderName);
 
     /// <inheritdoc cref="ICachedCurrencyAPI" />
-    public CachedCurrencyApi(ICurrencyApiService currencyApi, IOptionsMonitor<CurrenciesSettings> currenciesMonitor)
+    public CachedCurrencyApi(ICurrencyAPI                        currencyApi,
+                             IOptionsMonitor<CurrenciesSettings> currenciesMonitor,
+                             ILogger<CachedCurrencyApi>          logger)
     {
         _currencyApi = currencyApi;
         _settings    = currenciesMonitor.CurrentValue;
@@ -43,6 +50,10 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                                    _settings.BaseCurrency,
                                                                    cancellationToken);
             await SaveToCache(currencyInfo, cancellationToken);
+            CurrencyInfo[] currenciesInfo = await _currencyApi.GetAllCurrentCurrenciesAsync(
+                                                 _settings.BaseCurrency,
+                                                 cancellationToken);
+            currencyInfo = currenciesInfo.Single(currency => currency.Code == currencyType);
 
             return currencyInfo;
         }
@@ -69,6 +80,10 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                                    date,
                                                                    cancellationToken);
             await SaveToCache(currencyInfo, cancellationToken);
+            CurrenciesOnDate currenciesOnDate = await _currencyApi.GetAllCurrenciesOnDateAsync(
+                                                     _settings.BaseCurrency,
+                                                     cancellationToken);
+            currencyInfo = currenciesOnDate.Currencies.Single(currency => currency.Code == currencyType);
 
             return currencyInfo;
         }
