@@ -11,14 +11,19 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 
 public sealed class CacheWorkerService
 {
+    private const string CacheFolderName    = "Cache";
+    private const string FilesSearchPattern = "*.json";
+    private const string DateSeparator      = "-";
+    private const string TimeSeparator      = "_";
+
     private readonly ILogger<CacheWorkerService>  _logger;
     private          DirectoryInfo?               _cacheDirInfo;
     private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
     private static readonly IFormatProvider DateTimeCulture = new DateTimeFormatInfo
                                                               {
-                                                                  DateSeparator = "-",
-                                                                  TimeSeparator = "_"
+                                                                  DateSeparator = DateSeparator,
+                                                                  TimeSeparator = TimeSeparator
                                                               };
 
     private static readonly JsonSerializerOptions JsonSerializerOptions = new()
@@ -29,7 +34,7 @@ public sealed class CacheWorkerService
                                                                           };
 
     private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(),
-                                                                  CacheConstants.CacheFolderName);
+                                                                  CacheFolderName);
 
     public CacheWorkerService(ILogger<CacheWorkerService> logger)
     {
@@ -79,7 +84,7 @@ public sealed class CacheWorkerService
 
         _logger.LogDebug("Detected cache changes");
         _cacheDirInfo = cacheDirInfo;
-        _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(CacheConstants.FilesSearchPattern)
+        _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(FilesSearchPattern)
                                        .ToImmutableSortedSet(comparer: new FileInfoComparerByNameReversed());
 
         return;
