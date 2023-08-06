@@ -20,6 +20,8 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
     private DirectoryInfo?               _cacheDirInfo;
     private ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
+    private static readonly IFormatProvider DateTimeCulture = CultureInfo.InvariantCulture;
+
     private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(),
                                                                   CacheConstants.CacheFolderName);
 
@@ -37,10 +39,11 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                             CancellationToken cancellationToken)
     {
         UpdateCacheInfo();
-        var hourDifference = int.MaxValue;
+        var      hourDifference = int.MaxValue;
+        FileInfo newestFile     = _cacheFilesInfo[0];
         if (_cacheFilesInfo.Count > 0)
         {
-            hourDifference = GetHourDifferenceWithCache();
+            hourDifference = GetHourDifferenceFromNow(newestFile);
         }
 
         CurrencyInfo currencyInfo;
@@ -55,10 +58,12 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                  cancellationToken);
             currencyInfo = currenciesInfo.Single(currency => currency.Code == currencyType);
 
+            var fileName = $"{DateTime.Now.ToString(DateTimeCulture)}.json";
+            await SaveToCache(fileName, currencyInfo, cancellationToken);
+
             return currencyInfo;
         }
 
-        FileInfo newestFile = _cacheFilesInfo[0];
         currencyInfo = await GetFromCache(newestFile, cancellationToken);
 
         return currencyInfo;
@@ -75,15 +80,15 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         CurrencyInfo currencyInfo;
         if (relevantFile is null)
         {
-            currencyInfo = await _currencyApi.GetCurrencyInfoAsync(currencyType,
-                                                                   _settings.BaseCurrency,
-                                                                   date,
-                                                                   cancellationToken);
-            await SaveToCache(currencyInfo, cancellationToken);
+            _logger.LogDebug("Did not find relevant cache file");
             CurrenciesOnDate currenciesOnDate = await _currencyApi.GetAllCurrenciesOnDateAsync(
                                                      _settings.BaseCurrency,
+                                                     date,
                                                      cancellationToken);
             currencyInfo = currenciesOnDate.Currencies.Single(currency => currency.Code == currencyType);
+
+            var fileName = $"{currenciesOnDate.LastUpdatedAt.ToString(DateTimeCulture)}.json";
+            await SaveToCache(fileName, currencyInfo, cancellationToken);
 
             return currencyInfo;
         }
@@ -104,9 +109,11 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         }
     }
 
-    private static async Task SaveToCache(CurrencyInfo currencyInfo, CancellationToken cancellationToken)
+    private async Task SaveToCache(string fileName, CurrencyInfo currencyInfo, CancellationToken cancellationToken)
     {
-        await using FileStream fileStream = new(CacheFolderPath, FileMode.CreateNew);
+        string filePath = Path.Combine(CacheFolderPath, fileName);
+
+        await using FileStream fileStream = new(filePath, FileMode.CreateNew);
         await JsonSerializer.SerializeAsync(fileStream, currencyInfo, cancellationToken: cancellationToken);
     }
 
@@ -119,12 +126,12 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
         return currency;
     }
 
-    private int GetHourDifferenceWithCache()
+    private static int GetHourDifferenceFromNow(FileSystemInfo file)
     {
-        DateTime current       = DateTime.Now;
-        DateTime newestInCache = DateTime.Parse(_cacheFilesInfo[0].Name);
+        DateTime current = DateTime.Now;
+        DateTime another = DateTime.Parse(file.Name);
 
-        int hourDifference = (current - newestInCache).Hours;
+        int hourDifference = (current - another).Hours;
 
         return hourDifference;
     }
