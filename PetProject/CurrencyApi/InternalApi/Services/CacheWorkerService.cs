@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
@@ -20,21 +19,21 @@ public sealed class CacheWorkerService
     private          DirectoryInfo?               _cacheDirInfo;
     private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
-    private static readonly IFormatProvider DateTimeCulture = new DateTimeFormatInfo
-                                                              {
-                                                                  DateSeparator = DateSeparator,
-                                                                  TimeSeparator = TimeSeparator
-                                                              };
+    private static readonly IFormatProvider DateTimeCulture =
+        new DateTimeFormatInfo
+        {
+            DateSeparator = DateSeparator,
+            TimeSeparator = TimeSeparator
+        };
 
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
-                                                                          {
-                                                                              Converters =
-                                                                                  { new JsonStringEnumConverter() },
-                                                                              WriteIndented = true
-                                                                          };
+    private static readonly JsonSerializerOptions JsonSerializerOptions =
+        new()
+        {
+            Converters    = { new JsonStringEnumConverter() },
+            WriteIndented = true
+        };
 
-    private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(),
-                                                                  CacheFolderName);
+    private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(), CacheFolderName);
 
     public CacheWorkerService(ILogger<CacheWorkerService> logger)
     {
@@ -64,7 +63,7 @@ public sealed class CacheWorkerService
                                              cancellationToken: cancellationToken,
                                              options: JsonSerializerOptions)
                                  ?? throw new InvalidOperationException("Cannot get data from cache file!");
-        _logger.LogDebug("Got from cache file {Name}{Newline}{Content}",
+        _logger.LogDebug("Received from cache file {Name}{Newline}{Content}",
                          fileInfo.Name,
                          Environment.NewLine,
                          currencies);
@@ -118,7 +117,7 @@ public sealed class CacheWorkerService
                                               });
     }
 
-    private int? GetHourDifferenceWithNewest()
+    private double? GetHourDifferenceWithNewest()
     {
         FileInfo? newestFile = TryGetNewestFile();
         if (newestFile is null)
@@ -129,7 +128,7 @@ public sealed class CacheWorkerService
         DateTime current = DateTime.Now;
         DateTime another = ParseDateTimeFromFileName(newestFile);
 
-        int hourDifference = (current - another).Hours;
+        double hourDifference = (current - another).TotalHours;
 
         return hourDifference;
     }
