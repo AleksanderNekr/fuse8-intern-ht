@@ -3,19 +3,22 @@ using System.Text.Json;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+using Microsoft.Extensions.Options;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 
 /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
 public sealed class CurrencyApiService : ICurrencyApiService
 {
-    private readonly HttpClient _httpClient;
-    private const    string     CurrenciesSeparator = ",";
+    private readonly HttpClient         _httpClient;
+    private readonly CurrenciesSettings _settings;
+    private const    string             CurrenciesSeparator = ",";
 
     /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
-    public CurrencyApiService(HttpClient httpClient)
+    public CurrencyApiService(HttpClient httpClient, IOptionsMonitor<CurrenciesSettings> optionsMonitor)
     {
         _httpClient = httpClient;
+        _settings   = optionsMonitor.CurrentValue;
     }
 
     /// <inheritdoc />
@@ -43,6 +46,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
                                                                     DateOnly          date,
                                                                     CancellationToken cancellationToken)
     {
+        EnsureDateIsCorrect(date);
         await CheckRequestsLimitAsync(cancellationToken);
 
         CurrencyType[] currencies = Enum.GetValues<CurrencyType>();
@@ -100,6 +104,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
                                                                      DateOnly          date,
                                                                      CancellationToken stopToken)
     {
+        EnsureDateIsCorrect(date);
         await CheckRequestsLimitAsync(stopToken);
 
         var requestUri = $"historical?currencies={currency}&base_currency={baseCurrency}&&date={date}";
@@ -159,6 +164,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
                                                          DateOnly          date,
                                                          CancellationToken stopToken)
     {
+        EnsureDateIsCorrect(date);
         await CheckRequestsLimitAsync(stopToken);
 
         var requestUri = $"historical?currencies={currency}&base_currency={baseCurrency}&&date={date}";
@@ -179,6 +185,16 @@ public sealed class CurrencyApiService : ICurrencyApiService
                    Code  = currency,
                    Value = value,
                };
+    }
+
+    private void EnsureDateIsCorrect(DateOnly date)
+    {
+        DateOnly minDate = new(_settings.MinAvailableYear, 1, 1);
+        DateOnly maxDate = DateOnly.FromDateTime(DateTime.Now);
+        if (date < minDate || date > maxDate)
+        {
+            throw new IncorrectDateException(date, minDate, maxDate);
+        }
     }
 
     private async Task CheckRequestsLimitAsync(CancellationToken stopToken)

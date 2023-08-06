@@ -31,6 +31,11 @@ internal class ExceptionFilter : IExceptionFilter
                 context.Result = new NotFoundResult();
 
                 break;
+            case IncorrectDateException:
+                _logger.LogError(exception, "Unsupported date by API");
+                context.Result = new BadRequestResult();
+
+                break;
             default:
                 _logger.LogError(exception, "Unknown exception");
                 context.Result = new ObjectResult(exception.Message)
