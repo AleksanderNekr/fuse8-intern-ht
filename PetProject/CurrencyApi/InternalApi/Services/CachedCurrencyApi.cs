@@ -12,41 +12,31 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 public class CachedCurrencyApi : ICachedCurrencyAPI
 {
     private readonly ICurrencyAPI               _currencyApi;
+    private readonly CacheWorkerService         _cacheService;
     private readonly CurrenciesSettings         _settings;
     private readonly ILogger<CachedCurrencyApi> _logger;
-
-    private DirectoryInfo?               _cacheDirInfo;
-    private ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
-
-    private static readonly IFormatProvider DateTimeCulture = CultureInfo.InvariantCulture;
-
-    private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(),
-                                                                  CacheConstants.CacheFolderName);
 
     /// <inheritdoc cref="ICachedCurrencyAPI" />
     public CachedCurrencyApi(ICurrencyAPI                        currencyApi,
                              IOptionsMonitor<CurrenciesSettings> currenciesMonitor,
+                             CacheWorkerService                  cacheService,
                              ILogger<CachedCurrencyApi>          logger)
     {
-        _currencyApi = currencyApi;
-        _settings    = currenciesMonitor.CurrentValue;
-        _logger      = logger;
+        _currencyApi  = currencyApi;
+        _cacheService = cacheService;
+        _settings     = currenciesMonitor.CurrentValue;
+        _logger       = logger;
     }
 
     /// <inheritdoc />
     public async Task<CurrencyInfo> GetCurrentCurrencyAsync(CurrencyType      currencyType,
                                                             CancellationToken cancellationToken)
     {
-        UpdateCacheInfo();
-        var      hourDifference = int.MaxValue;
-        FileInfo newestFile     = _cacheFilesInfo[0];
-        if (_cacheFilesInfo.Count > 0)
-        {
-            hourDifference = GetHourDifferenceFromNow(newestFile);
-        }
+        _cacheService.UpdateCacheInfo();
+        FileInfo? newestFile = _cacheService.TryGetNewestFile();
 
         CurrencyInfo currencyInfo;
-        if (_cacheFilesInfo.Count == 0 || hourDifference > _settings.CacheRelevanceHours)
+        if (newestFile is null || _cacheService.CacheIsOlderThan(_settings.CacheRelevanceHours))
         {
             _logger.LogDebug("Did not find relevant cache file");
             CurrencyInfo[] currenciesInfo = await _currencyApi.GetAllCurrentCurrenciesAsync(
@@ -54,13 +44,12 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                  cancellationToken);
             currencyInfo = currenciesInfo.Single(currency => currency.Code == currencyType);
 
-            var fileName = $"{DateTime.Now.ToString(DateTimeCulture)}.json";
-            await SaveToCache(fileName, currencyInfo, cancellationToken);
+            await _cacheService.SaveToCache(DateTime.Now, currencyInfo, cancellationToken);
 
             return currencyInfo;
         }
 
-        currencyInfo = await GetFromCache(newestFile, cancellationToken);
+        currencyInfo = await _cacheService.GetFromCache(newestFile, cancellationToken);
 
         _logger.LogDebug("Found relevant cache file {Name}{Newline}{Content}",
                          newestFile.Name,
@@ -75,8 +64,8 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                            DateOnly          date,
                                                            CancellationToken cancellationToken)
     {
-        UpdateCacheInfo();
-        FileInfo? relevantFile = TryGetRelevantFile();
+        _cacheService.UpdateCacheInfo();
+        FileInfo? relevantFile = _cacheService.TryGetFileOnDate(date);
 
         CurrencyInfo currencyInfo;
         if (relevantFile is null)
@@ -88,13 +77,12 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                                                      cancellationToken);
             currencyInfo = currenciesOnDate.Currencies.Single(currency => currency.Code == currencyType);
 
-            var fileName = $"{currenciesOnDate.LastUpdatedAt.ToString(DateTimeCulture)}.json";
-            await SaveToCache(fileName, currencyInfo, cancellationToken);
+            await _cacheService.SaveToCache(currenciesOnDate.LastUpdatedAt, currencyInfo, cancellationToken);
 
             return currencyInfo;
         }
 
-        currencyInfo = await GetFromCache(relevantFile, cancellationToken);
+        currencyInfo = await _cacheService.GetFromCache(relevantFile, cancellationToken);
 
         _logger.LogDebug("Found relevant cache file {Name}{Newline}{Content}",
                          relevantFile.Name,
@@ -102,96 +90,5 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
                          currencyInfo);
 
         return currencyInfo;
-
-        FileInfo? TryGetRelevantFile()
-        {
-            return _cacheFilesInfo.FirstOrDefault(file =>
-                                                  {
-                                                      DateTime dateTimeCreation =
-                                                          DateTime.Parse(file.Name, DateTimeCulture);
-
-                                                      DateOnly dateCreation = DateOnly.FromDateTime(dateTimeCreation);
-
-                                                      return dateCreation == date;
-                                                  });
-        }
-    }
-
-    private async Task SaveToCache(string fileName, CurrencyInfo currencyInfo, CancellationToken cancellationToken)
-    {
-        string filePath = Path.Combine(CacheFolderPath, fileName);
-
-        await using FileStream fileStream = new(filePath, FileMode.CreateNew);
-        await JsonSerializer.SerializeAsync(fileStream, currencyInfo, cancellationToken: cancellationToken);
-
-        _logger.LogDebug("Saved to cache {Name}{Newline}{Currency}", fileName, Environment.NewLine, currencyInfo);
-    }
-
-    private async Task<CurrencyInfo> GetFromCache(FileInfo fileInfo, CancellationToken cancellationToken)
-    {
-        await using FileStream readFileStream = fileInfo.OpenRead();
-        var currency = await JsonSerializer.DeserializeAsync<CurrencyInfo>(readFileStream,
-                                                                           cancellationToken: cancellationToken);
-        _logger.LogDebug("Got currency from cache file {Name}", fileInfo.Name);
-
-        return currency;
-    }
-
-    private static int GetHourDifferenceFromNow(FileSystemInfo file)
-    {
-        DateTime current = DateTime.Now;
-        DateTime another = DateTime.Parse(file.Name);
-
-        int hourDifference = (current - another).Hours;
-
-        return hourDifference;
-    }
-
-    private void UpdateCacheInfo()
-    {
-        var cacheDirInfo = new DirectoryInfo(CacheFolderPath);
-        if (_cacheDirInfo is not null && DidNotChange())
-        {
-            _logger.LogDebug("Cache did not change");
-
-            return;
-        }
-
-        _logger.LogDebug("Detected cache changes");
-        _cacheDirInfo = cacheDirInfo;
-        _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(CacheConstants.FilesSearchPattern)
-                                       .ToImmutableSortedSet(comparer: new FileInfoComparerByNameReversed());
-
-        return;
-
-        bool DidNotChange()
-        {
-            return cacheDirInfo.LastWriteTime.Equals(_cacheDirInfo.LastWriteTime);
-        }
-    }
-}
-
-internal sealed class FileInfoComparerByNameReversed : IComparer<FileInfo>
-{
-    public int Compare(FileInfo? x, FileInfo? y)
-    {
-        if (ReferenceEquals(x, y))
-        {
-            return 0;
-        }
-
-        if (ReferenceEquals(null, y))
-        {
-            return -1;
-        }
-
-        if (ReferenceEquals(null, x))
-        {
-            return 1;
-        }
-
-        // Дата создания файла может быть некорректной при передаче, поэтому сравнение не по ней, а по названию
-        // файла, которое и есть дата его создания.
-        return DateTime.Parse(y.Name).CompareTo(DateTime.Parse(x.Name));
     }
 }
