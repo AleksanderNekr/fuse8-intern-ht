@@ -52,7 +52,18 @@ public class Startup
         services.AddTransient<ApiKeyHandler>();
 
         var baseAddress = _configuration.GetValue<string>(CurrencyApiConstants.BaseApiAddressSettingsKey)!;
-        services.AddHttpClient<ICurrencyApiService, CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
+        services
+           .AddHttpClient<ICurrencyApiService, CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
+           .AddAuditHandler(static configurator =>
+                            {
+                                configurator.IncludeRequestBody()
+                                            .IncludeRequestHeaders()
+                                            .IncludeContentHeaders()
+                                            .IncludeResponseHeaders()
+                                            .IncludeResponseBody();
+                            })
+           .AddHttpMessageHandler<ApiKeyHandler>();
+        services.AddHttpClient<ICachedCurrencyAPI, CachedCurrencyApi>(client => client.BaseAddress = new Uri(baseAddress))
                 .AddAuditHandler(static configurator =>
                                  {
                                      configurator.IncludeRequestBody()
