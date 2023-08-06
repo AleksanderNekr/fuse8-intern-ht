@@ -56,17 +56,18 @@ public sealed class CurrencyApiService : ICurrencyApiService
         string                    responseBody   = await response.Content.ReadAsStringAsync(cancellationToken);
         IEnumerable<CurrencyInfo> currenciesInfo = GetCurrenciesInfoFromResponse(currencies, responseBody);
 
-        DateTime         dateTimeInfo     = DateTimeFromDate(date);
-        CurrenciesOnDate currenciesOnDate = new(dateTimeInfo, currenciesInfo.ToArray());
+        DateTime         updatedAt        = DateTimeFromResponse();
+        CurrenciesOnDate currenciesOnDate = new(updatedAt, currenciesInfo.ToArray());
 
         return currenciesOnDate;
 
-        static DateTime DateTimeFromDate(DateOnly dateOnly)
+        DateTime DateTimeFromResponse()
         {
-            TimeOnly timeNow      = TimeOnly.FromDateTime(DateTime.Now);
-            var      dateTimeInfo = dateOnly.ToDateTime(timeNow);
+            JsonDocument responseParsed = JsonDocument.Parse(responseBody);
+            JsonElement  metaSection    = responseParsed.RootElement.GetProperty("meta");
+            DateTime     lastUpdatedAt  = metaSection.GetProperty("last_updated_at").GetDateTime();
 
-            return dateTimeInfo;
+            return lastUpdatedAt;
         }
     }
 
