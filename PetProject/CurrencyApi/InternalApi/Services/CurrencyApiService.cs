@@ -8,7 +8,7 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 
 /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
-public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
+public sealed class CurrencyApiService : ICurrencyApiService
 {
     private readonly HttpClient _httpClient;
 

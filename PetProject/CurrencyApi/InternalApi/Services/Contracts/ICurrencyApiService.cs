@@ -6,7 +6,7 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 /// <summary>
 ///     Сервис получения данных от CurrencyApi.
 /// </summary>
-public interface ICurrencyApiService
+public interface ICurrencyApiService : ICurrencyAPI
 {
     /// <summary>
     ///     Получение информации о валюте относительно базовой.
