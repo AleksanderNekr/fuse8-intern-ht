@@ -9,4 +9,6 @@ internal static class CurrencyApiConstants
     public const string BaseApiAddressSettingsKey = "BaseApiAddress";
 
     public const string CurrenciesSettingsKey = "Currencies";
+
+    public const string GrpcPortSettingsKey = "GrpcPort";
 }

@@ -126,5 +126,14 @@ public class Startup
            .UseEndpoints(static endpoints => endpoints.MapControllers());
 
         app.UseHttpLogging();
+
+        var grpcPort = _configuration.GetValue<int>(CurrencyApiConstants.GrpcPortSettingsKey);
+        app.UseWhen(predicate: context => context.Connection.LocalPort == grpcPort,
+                    configuration: static grpcBuilder =>
+                                   {
+                                       grpcBuilder.UseRouting();
+                                       grpcBuilder.UseEndpoints(static builder =>
+                                                                    builder.MapGrpcService<CurrencyGrpcService>());
+                                   });
     }
 }
