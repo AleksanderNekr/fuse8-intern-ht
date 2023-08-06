@@ -26,7 +26,7 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyInfo> GetCurrentCurrencyAsync(string            currencyType,
+    public async Task<CurrencyInfo> GetCurrentCurrencyAsync(CurrencyType      currencyType,
                                                             CancellationToken cancellationToken)
     {
         UpdateCacheInfo();
@@ -54,7 +54,7 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyInfo> GetCurrencyOnDateAsync(string            currencyType,
+    public async Task<CurrencyInfo> GetCurrencyOnDateAsync(CurrencyType      currencyType,
                                                            DateOnly          date,
                                                            CancellationToken cancellationToken)
     {

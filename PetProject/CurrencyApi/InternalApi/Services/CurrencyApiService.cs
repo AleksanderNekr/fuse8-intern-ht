@@ -10,8 +10,7 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
 public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
 {
-    private readonly HttpClient                _httpClient;
-    private          IAsyncEnumerable<string>? _currenciesCodes;
+    private readonly HttpClient _httpClient;
 
     /// <inheritdoc cref="Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts.ICurrencyApiService" />
     public CurrencyApiService(HttpClient httpClient)
@@ -24,15 +23,12 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
                                                                    CancellationToken cancellationToken)
     {
         await CheckRequestsLimitAsync(cancellationToken);
-        _currenciesCodes ??= GetSupportedCurrenciesCodes(cancellationToken);
 
-        List<Task<CurrencyInfo>> getCurrencies = new();
-        await foreach (string code in _currenciesCodes.WithCancellation(cancellationToken))
-        {
-            getCurrencies.Add(GetCurrencyInfoAsync(code,
-                                                   baseCurrency,
-                                                   cancellationToken));
-        }
+        IEnumerable<Task<CurrencyInfo>> getCurrencies = Enum.GetValues<CurrencyType>()
+                                                            .Select(code => GetCurrencyInfoAsync(
+                                                                         code,
+                                                                         baseCurrency,
+                                                                         cancellationToken));
 
         CurrencyInfo[] currenciesInfo = await Task.WhenAll(getCurrencies);
 
@@ -45,16 +41,13 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
                                                                     CancellationToken cancellationToken)
     {
         await CheckRequestsLimitAsync(cancellationToken);
-        _currenciesCodes ??= GetSupportedCurrenciesCodes(cancellationToken);
 
-        List<Task<CurrencyInfo>> getCurrencies = new();
-        await foreach (string code in _currenciesCodes.WithCancellation(cancellationToken))
-        {
-            getCurrencies.Add(GetCurrencyInfoAsync(code,
-                                                   baseCurrency,
-                                                   date,
-                                                   cancellationToken));
-        }
+        IEnumerable<Task<CurrencyInfo>> getCurrencies = Enum.GetValues<CurrencyType>()
+                                                            .Select(code => GetCurrencyInfoAsync(
+                                                                         code,
+                                                                         baseCurrency,
+                                                                         date,
+                                                                         cancellationToken));
 
         CurrencyInfo[]   currencies       = await Task.WhenAll(getCurrencies);
         CurrenciesOnDate currenciesOnDate = new(DateTime.UtcNow, currencies);
@@ -63,7 +56,7 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
+    public async Task<CurrencyInfo> GetCurrencyInfoAsync(CurrencyType      currency,
                                                          string            baseCurrency,
                                                          CancellationToken stopToken)
     {
@@ -90,7 +83,7 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(string            currency,
+    public async Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(CurrencyType      currency,
                                                                      string            baseCurrency,
                                                                      DateOnly          date,
                                                                      CancellationToken stopToken)
@@ -149,7 +142,7 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
+    public async Task<CurrencyInfo> GetCurrencyInfoAsync(CurrencyType      currency,
                                                          string            baseCurrency,
                                                          DateOnly          date,
                                                          CancellationToken stopToken)
@@ -176,11 +169,11 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
                };
     }
 
-    private static decimal GetCurrencyFromResponse(string currency, string responseBody)
+    private static decimal GetCurrencyFromResponse(CurrencyType currency, string responseBody)
     {
         JsonDocument responseParsed  = JsonDocument.Parse(responseBody);
         JsonElement  dataSection     = responseParsed.RootElement.GetProperty("data");
-        JsonElement  currencySection = dataSection.GetProperty(currency);
+        JsonElement  currencySection = dataSection.GetProperty(currency.ToString());
         decimal      value           = currencySection.GetProperty("value").GetDecimal();
 
         return value;
@@ -205,29 +198,5 @@ public sealed class CurrencyApiService : ICurrencyApiService, ICurrencyAPI
         }
 
         throw new ApiRequestLimitException("API requests limit exceeded!");
-    }
-
-    private async IAsyncEnumerable<string> GetSupportedCurrenciesCodes(
-        [EnumeratorCancellation] CancellationToken stopToken)
-    {
-        const string        requestUri = "currencies";
-        HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
-
-        response.EnsureSuccessStatusCode();
-
-        string responseBody = await response.Content.ReadAsStringAsync(stopToken);
-
-        JsonDocument document = JsonDocument.Parse(responseBody);
-        var          data     = document.RootElement.GetProperty("data").Deserialize<Data>()!;
-
-        foreach (string currency in data.Currencies)
-        {
-            yield return currency;
-        }
-    }
-
-    private class Data
-    {
-        public string[] Currencies { get; }
     }
 }

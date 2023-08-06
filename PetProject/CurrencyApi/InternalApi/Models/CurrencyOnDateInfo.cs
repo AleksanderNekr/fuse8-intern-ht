@@ -17,7 +17,7 @@ public readonly record struct CurrencyOnDateInfo
     ///     Код валюты.
     /// </summary>
     [JsonPropertyName("code")]
-    public required string Code { get; init; }
+    public required CurrencyType Code { get; init; }
 
     /// <summary>
     ///     Значение валюты относительно базовой валюты.

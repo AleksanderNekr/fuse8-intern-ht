@@ -18,7 +18,7 @@ public interface ICurrencyApiService
     /// <exception cref="CurrencyNotFoundException">Превышен лимит запросов к API.</exception>
     /// <exception cref="HttpRequestException">Не найдена валюта.</exception>
     /// <exception cref="ApiRequestLimitException">HTTP-ответ был не успешен.</exception>
-    public Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
+    public Task<CurrencyInfo> GetCurrencyInfoAsync(CurrencyType      currency,
                                                    string            baseCurrency,
                                                    CancellationToken stopToken);
 
@@ -33,7 +33,7 @@ public interface ICurrencyApiService
     /// <exception cref="CurrencyNotFoundException">Превышен лимит запросов к API.</exception>
     /// <exception cref="HttpRequestException">Не найдена валюта.</exception>
     /// <exception cref="ApiRequestLimitException">HTTP-ответ был не успешен.</exception>
-    public Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
+    public Task<CurrencyInfo> GetCurrencyInfoAsync(CurrencyType      currency,
                                                    string            baseCurrency,
                                                    DateOnly          date,
                                                    CancellationToken stopToken);
@@ -49,7 +49,7 @@ public interface ICurrencyApiService
     /// <exception cref="ApiRequestLimitException">Превышен лимит запросов к API.</exception>
     /// <exception cref="CurrencyNotFoundException">Не найдена валюта.</exception>
     /// <exception cref="HttpRequestException">HTTP-ответ был не успешен.</exception>
-    public Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(string            currency,
+    public Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(CurrencyType      currency,
                                                                string            baseCurrency,
                                                                DateOnly          date,
                                                                CancellationToken stopToken);
