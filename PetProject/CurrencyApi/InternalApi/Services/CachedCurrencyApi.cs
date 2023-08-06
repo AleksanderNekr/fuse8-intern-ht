@@ -7,13 +7,13 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 /// <inheritdoc />
 public class CachedCurrencyApi : ICachedCurrencyAPI
 {
-    private readonly ICurrencyAPI               _currencyApi;
+    private readonly ICurrencyApiService        _currencyApi;
     private readonly CacheWorkerService         _cacheService;
     private readonly CurrenciesSettings         _settings;
     private readonly ILogger<CachedCurrencyApi> _logger;
 
     /// <inheritdoc cref="ICachedCurrencyAPI" />
-    public CachedCurrencyApi(ICurrencyAPI                        currencyApi,
+    public CachedCurrencyApi(ICurrencyApiService                 currencyApi,
                              IOptionsMonitor<CurrenciesSettings> currenciesMonitor,
                              CacheWorkerService                  cacheService,
                              ILogger<CachedCurrencyApi>          logger)

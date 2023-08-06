@@ -63,17 +63,6 @@ public class Startup
                                             .IncludeResponseBody();
                             })
            .AddHttpMessageHandler<ApiKeyHandler>();
-        services
-           .AddHttpClient<ICurrencyAPI, CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
-           .AddAuditHandler(static configurator =>
-                            {
-                                configurator.IncludeRequestBody()
-                                            .IncludeRequestHeaders()
-                                            .IncludeContentHeaders()
-                                            .IncludeResponseHeaders()
-                                            .IncludeResponseBody();
-                            })
-           .AddHttpMessageHandler<ApiKeyHandler>();
 
         services.AddTransient<ICachedCurrencyAPI, CachedCurrencyApi>();
         services.AddSingleton<CacheWorkerService>();
