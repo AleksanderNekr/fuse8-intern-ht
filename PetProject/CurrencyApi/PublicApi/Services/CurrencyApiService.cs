@@ -1,4 +1,5 @@
-﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
+﻿using System.Globalization;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -28,7 +29,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         CurrencyResponse response = await _grpcClient.GetCurrentCurrencyAsync(request,
                                                                               options: new CallOptions(
                                                                                    cancellationToken: stopToken));
-        decimal value   = decimal.Parse(response.Value);
+        decimal value   = decimal.Parse(response.Value, CultureInfo.InvariantCulture);
         decimal rounded = Math.Round(value, decimalPlace);
 
         return new CurrencyInfo
@@ -44,7 +45,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
                                                                      DateOnly          date,
                                                                      CancellationToken stopToken)
     {
-        var dateTime = date.ToDateTime(TimeOnly.MaxValue);
+        var dateTime = date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
         CurrencyOnDateRequest request = new()
                                         {
                                             Date = Timestamp.FromDateTime(dateTime),
@@ -53,7 +54,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         CurrencyResponse response = await _grpcClient.GetCurrencyOnDateAsync(request,
                                                                              options: new CallOptions(
                                                                                   cancellationToken: stopToken));
-        decimal value   = decimal.Parse(response.Value);
+        decimal value   = decimal.Parse(response.Value, CultureInfo.InvariantCulture);
         decimal rounded = Math.Round(value, decimalPlace);
 
         return new CurrencyOnDateInfo
