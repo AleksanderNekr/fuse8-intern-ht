@@ -20,16 +20,10 @@ public readonly record struct SettingsInfo
     public required string BaseCurrency { get; init; }
 
     /// <summary>
-    ///     Лимит запросов.
+    ///     Доступны ли еще запросы к внешнему API.
     /// </summary>
     [JsonPropertyName("requestLimit")]
-    public required int RequestLimit { get; init; }
-
-    /// <summary>
-    ///     Количество использованных запросов.
-    /// </summary>
-    [JsonPropertyName("requestCount")]
-    public required int RequestCount { get; init; }
+    public required bool NewRequestsAvailable { get; init; }
 
     /// <summary>
     ///     Количество знаков после запятой у валюты.

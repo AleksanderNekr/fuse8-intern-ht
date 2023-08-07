@@ -11,11 +11,34 @@ public readonly record struct CurrencyInfo
     ///     Код валюты.
     /// </summary>
     [JsonPropertyName("code")]
-    public required string Code { get; init; }
+    public required CurrencyType Code { get; init; }
 
     /// <summary>
     ///     Значение валюты относительно базовой валюты.
     /// </summary>
     [JsonPropertyName("value")]
     public required decimal Value { get; init; }
+}
+
+/// <summary>
+/// Тип валюты.
+/// </summary>
+public enum CurrencyType
+{
+    /// <summary>
+    /// Доллар США.
+    /// </summary>
+    USD,
+    /// <summary>
+    /// Российский рубль.
+    /// </summary>
+    RUB,
+    /// <summary>
+    /// Казахстанский тенге.
+    /// </summary>
+    KZT,
+    /// <summary>
+    /// Евро
+    /// </summary>
+    EUR
 }
