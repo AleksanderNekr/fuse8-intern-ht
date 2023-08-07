@@ -189,12 +189,15 @@ public sealed class CurrencyApiService : ICurrencyApiService
 
     private void EnsureDateIsCorrect(DateOnly date)
     {
-        DateOnly minDate = new(_settings.MinAvailableYear, 1, 1);
         DateOnly maxDate = DateOnly.FromDateTime(DateTime.Now);
-        if (date < minDate || date > maxDate)
+        if (date.Year >= _settings.MinAvailableYear && date <= maxDate)
         {
-            throw new IncorrectDateException(date, minDate, maxDate);
+            return;
         }
+
+        DateOnly minDate = new(_settings.MinAvailableYear, 1, 1);
+
+        throw new IncorrectDateException(date, minDate, maxDate);
     }
 
     private async Task CheckRequestsLimitAsync(CancellationToken stopToken)
