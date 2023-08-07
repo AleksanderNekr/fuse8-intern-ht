@@ -66,8 +66,8 @@ public sealed class CacheWorkerService
     {
         await using FileStream readFileStream = fileInfo.OpenRead();
         CurrencyInfo[] currencies = await JsonSerializer.DeserializeAsync<CurrencyInfo[]>(readFileStream,
-                                             cancellationToken: cancellationToken,
-                                             options: JsonSerializerOptions)
+                                        cancellationToken: cancellationToken,
+                                        options: JsonSerializerOptions)
                                  ?? throw new InvalidOperationException("Cannot get data from cache file!");
         _logger.LogDebug("Received from cache file {Name}{Newline}{Content}",
                          fileInfo.Name,
@@ -79,8 +79,8 @@ public sealed class CacheWorkerService
 
     internal void UpdateCacheInfo()
     {
-        var                   cacheDirInfo    = new DirectoryInfo(_cacheFolderPath);
-        IEnumerable<FileInfo> cacheEnumerated = cacheDirInfo.EnumerateFiles(_filesSearchPattern).ToList();
+        var        cacheDirInfo = new DirectoryInfo(_cacheFolderPath);
+        FileInfo[] fileInfos    = cacheDirInfo.GetFiles(_filesSearchPattern);
         if (_cacheDirInfo is not null && DidNotChange())
         {
             _logger.LogDebug("Cache did not change");
@@ -90,14 +90,14 @@ public sealed class CacheWorkerService
 
         _logger.LogDebug("Detected cache changes");
         _cacheDirInfo   = cacheDirInfo;
-        _cacheFilesInfo = cacheEnumerated.ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
+        _cacheFilesInfo = fileInfos.ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
 
         return;
 
         bool DidNotChange()
         {
             return cacheDirInfo.LastWriteTime.Equals(_cacheDirInfo.LastWriteTime)
-                && cacheEnumerated.Any() == _cacheFilesInfo.Any();
+                && fileInfos.Length == _cacheFilesInfo.Count;
         }
     }
 
