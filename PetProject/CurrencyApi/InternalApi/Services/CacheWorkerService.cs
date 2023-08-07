@@ -22,8 +22,13 @@ public sealed class CacheWorkerService
     private static readonly IFormatProvider DateTimeCulture =
         new DateTimeFormatInfo
         {
-            DateSeparator = DateSeparator,
-            TimeSeparator = TimeSeparator
+            ShortDatePattern    = "dd-MM-yyyy",
+            ShortTimePattern    = "HH_mm_ss",
+            LongTimePattern     = "HH_mm_ss",
+            LongDatePattern     = "dd-MM-yyyy",
+            FullDateTimePattern = "dd-MM-yyyy HH_mm_ss",
+            DateSeparator       = DateSeparator,
+            TimeSeparator       = TimeSeparator
         };
 
     private static readonly JsonSerializerOptions JsonSerializerOptions =
