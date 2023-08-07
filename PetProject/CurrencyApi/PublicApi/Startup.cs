@@ -6,6 +6,7 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -69,6 +70,14 @@ public class Startup
 
         Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
 
+        IConfigurationSection currenciesSection =
+            _configuration.GetRequiredSection(CurrencyApiConstants.CurrenciesSectionName);
+        services.Configure<CurrenciesSettings>(currenciesSection);
+
+        services.AddTransient<ICurrencyApiService, CurrencyApiService>();
+
+        return;
+
         static void ConfigureAuditSerilog(ISerilogConfigurator configurator)
         {
             configurator.Message(static @event =>
@@ -87,10 +96,6 @@ public class Startup
                                      return @event.ToJson();
                                  });
         }
-
-        IConfigurationSection currenciesSection =
-            _configuration.GetRequiredSection(CurrencyApiConstants.CurrenciesSectionName);
-        services.Configure<CurrenciesSettings>(currenciesSection);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
