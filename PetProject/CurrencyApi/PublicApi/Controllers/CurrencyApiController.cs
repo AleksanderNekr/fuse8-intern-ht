@@ -51,8 +51,7 @@ public class CurrencyApiController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CurrencyInfo>> GetDefaultCurrency(CancellationToken stopToken)
     {
-        return await _service.GetCurrencyInfoAsync(_settings.DefaultCurrency,
-                                                   _settings.BaseCurrency,
+        return await _service.GetCurrencyInfoAsync(Enum.Parse<CurrencyType>(_settings.DefaultCurrency),
                                                    _settings.DecimalPlace,
                                                    stopToken);
     }
@@ -83,10 +82,9 @@ public class CurrencyApiController : ControllerBase
     ///     </example>
     /// </returns>
     [HttpGet("{currencyCode}")]
-    public async Task<ActionResult<CurrencyInfo>> GetCurrency(string currencyCode, CancellationToken stopToken)
+    public async Task<ActionResult<CurrencyInfo>> GetCurrency(CurrencyType currencyCode, CancellationToken stopToken)
     {
         return await _service.GetCurrencyInfoAsync(currencyCode,
-                                                   _settings.BaseCurrency,
                                                    _settings.DecimalPlace,
                                                    stopToken);
     }
@@ -120,12 +118,11 @@ public class CurrencyApiController : ControllerBase
     ///     </example>
     /// </returns>
     [HttpGet("{currencyCode}/{date}")]
-    public async Task<ActionResult<CurrencyOnDateInfo>> GetCurrency(string            currencyCode,
+    public async Task<ActionResult<CurrencyOnDateInfo>> GetCurrency(CurrencyType      currencyCode,
                                                                     DateOnly          date,
                                                                     CancellationToken stopToken)
     {
         return await _service.GetCurrencyInfoOnDateAsync(currencyCode,
-                                                         _settings.BaseCurrency,
                                                          _settings.DecimalPlace,
                                                          date,
                                                          stopToken);
@@ -144,13 +141,12 @@ public class CurrencyApiController : ControllerBase
     /// <returns>
     ///     JSON
     ///     <example>
-    ///         <code>
+    ///     <code>
     ///     {
-    ///         "defaultCurrency": "RUB",
-    ///         "baseCurrency": "USD",
-    ///         "requestLimit": 300,
-    ///         "requestCount": 0,
-    ///         "currencyRoundCount": 2
+    ///       "defaultCurrency": "RUB",
+    ///       "baseCurrency": "USD",
+    ///       "newRequestsAvailable": bool,
+    ///       "currencyRoundCount": 2
     ///     }
     ///     </code>
     ///     </example>
@@ -158,15 +154,8 @@ public class CurrencyApiController : ControllerBase
     [HttpGet("settings")]
     public async Task<ActionResult<SettingsInfo>> GetSettingsInfo(CancellationToken stopToken)
     {
-        MonthSection monthSection = await _service.GetMonthSectionAsync(stopToken);
+        SettingsInfo settings = await _service.GetSettingsAsync(stopToken);
 
-        return new SettingsInfo
-               {
-                   DefaultCurrency    = _settings.DefaultCurrency,
-                   BaseCurrency       = _settings.BaseCurrency,
-                   RequestLimit       = monthSection.Total,
-                   RequestCount       = monthSection.Used,
-                   CurrencyRoundCount = _settings.DecimalPlace,
-               };
+        return settings;
     }
 }
