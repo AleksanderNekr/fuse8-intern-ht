@@ -55,8 +55,6 @@ public class Startup
                                     options.MediaTypeOptions.AddText("application/json");
                                 });
 
-        services.AddTransient<ApiKeyHandler>();
-
         var grpcAddress = _configuration.GetValue<string>(CurrencyApiConstants.GrpcAddressSettingsKey)!;
         services.AddGrpcClient<CurrencyApiGrpc.CurrencyApiGrpcClient>(options => options.Address = new Uri(grpcAddress))
                 .AddAuditHandler(static configurator => configurator.IncludeRequestBody());
