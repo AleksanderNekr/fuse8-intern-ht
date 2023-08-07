@@ -34,15 +34,15 @@ public sealed class CacheWorkerService
         _fileExtension      = settings.FileExtension;
         _filesSearchPattern = $"*{_fileExtension}";
         _dateTimeFormat = new DateTimeFormatInfo
-                           {
-                               ShortDatePattern    = settings.DatePattern,
-                               LongDatePattern     = settings.DatePattern,
-                               ShortTimePattern    = settings.TimePattern,
-                               LongTimePattern     = settings.TimePattern,
-                               FullDateTimePattern = $"{settings.DatePattern} {settings.TimePattern}",
-                               DateSeparator       = settings.DateSeparator,
-                               TimeSeparator       = settings.TimeSeparator
-                           };
+                          {
+                              ShortDatePattern    = settings.DatePattern,
+                              LongDatePattern     = settings.DatePattern,
+                              ShortTimePattern    = settings.TimePattern,
+                              LongTimePattern     = settings.TimePattern,
+                              FullDateTimePattern = $"{settings.DatePattern} {settings.TimePattern}",
+                              DateSeparator       = settings.DateSeparator,
+                              TimeSeparator       = settings.TimeSeparator
+                          };
         _cacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(), settings.CacheFolderName);
     }
 
@@ -79,7 +79,8 @@ public sealed class CacheWorkerService
 
     internal void UpdateCacheInfo()
     {
-        var cacheDirInfo = new DirectoryInfo(_cacheFolderPath);
+        var                   cacheDirInfo    = new DirectoryInfo(_cacheFolderPath);
+        IEnumerable<FileInfo> cacheEnumerated = cacheDirInfo.EnumerateFiles(_filesSearchPattern).ToList();
         if (_cacheDirInfo is not null && DidNotChange())
         {
             _logger.LogDebug("Cache did not change");
@@ -88,15 +89,15 @@ public sealed class CacheWorkerService
         }
 
         _logger.LogDebug("Detected cache changes");
-        _cacheDirInfo = cacheDirInfo;
-        _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(_filesSearchPattern)
-                                       .ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
+        _cacheDirInfo   = cacheDirInfo;
+        _cacheFilesInfo = cacheEnumerated.ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
 
         return;
 
         bool DidNotChange()
         {
-            return cacheDirInfo.LastWriteTime.Equals(_cacheDirInfo.LastWriteTime);
+            return cacheDirInfo.LastWriteTime.Equals(_cacheDirInfo.LastWriteTime)
+                && cacheEnumerated.Any() == _cacheFilesInfo.Any();
         }
     }
 
@@ -151,7 +152,7 @@ public sealed class CacheWorkerService
 
     private bool CacheEmpty()
     {
-        return _cacheFilesInfo.Count == 0;
+        return _cacheFilesInfo is null || _cacheFilesInfo.Count == 0;
     }
 
     private int Compare(FileInfo? x, FileInfo? y)
