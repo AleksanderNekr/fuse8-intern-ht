@@ -8,5 +8,5 @@ internal static class CurrencyApiConstants
 
     public const string ApiKeyHeader = "apikey";
 
-    public const string BaseApiAddressSettingsKey = "BaseApiAddress";
+    public const string GrpcAddressSettingsKey = "GrpcAddress";
 }

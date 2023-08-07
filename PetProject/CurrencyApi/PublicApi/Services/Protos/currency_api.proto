@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc";
+
+package currency_api;
+
+service CurrencyApiGrpc {
+  rpc GetCurrentCurrency(CurrencyRequest) returns (CurrencyResponse);
+
+  rpc GetCurrencyOnDate(CurrencyOnDateRequest) returns (CurrencyResponse);
+
+  rpc GetSettings(google.protobuf.Empty) returns (SettingsResponse);
+}
+
+enum CurrencyCode {
+  USD = 0;
+  RUB = 1;
+  KZT = 2;
+  EUR = 3;
+}
+
+message CurrencyRequest {
+  CurrencyCode code = 1;
+}
+
+message CurrencyOnDateRequest {
+  CurrencyCode code = 1;
+  google.protobuf.Timestamp date = 2;
+}
+
+message CurrencyResponse {
+  string value = 1;
+}
+
+message SettingsResponse {
+  string base_currency = 1;
+  bool has_available_requests = 2;
+}

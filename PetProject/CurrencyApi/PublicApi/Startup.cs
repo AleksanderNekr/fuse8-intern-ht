@@ -2,11 +2,11 @@
 using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Handlers;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -57,18 +57,9 @@ public class Startup
 
         services.AddTransient<ApiKeyHandler>();
 
-        var baseAddress = _configuration.GetValue<string>(CurrencyApiConstants.BaseApiAddressSettingsKey)!;
-        services
-           .AddHttpClient<ICurrencyApiService, CurrencyApiService>(client => client.BaseAddress = new Uri(baseAddress))
-           .AddAuditHandler(static configurator =>
-                            {
-                                configurator.IncludeRequestBody()
-                                            .IncludeRequestHeaders()
-                                            .IncludeResponseBody()
-                                            .IncludeResponseHeaders()
-                                            .IncludeContentHeaders();
-                            })
-           .AddHttpMessageHandler<ApiKeyHandler>();
+        var grpcAddress = _configuration.GetValue<string>(CurrencyApiConstants.GrpcAddressSettingsKey)!;
+        services.AddGrpcClient<CurrencyApiGrpc.CurrencyApiGrpcClient>(options => options.Address = new Uri(grpcAddress))
+                .AddAuditHandler(static configurator => configurator.IncludeRequestBody());
 
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
                                               .CreateLogger();
