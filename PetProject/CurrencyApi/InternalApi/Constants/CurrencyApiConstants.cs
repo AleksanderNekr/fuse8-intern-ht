@@ -12,5 +12,5 @@ internal static class CurrencyApiConstants
 
     public const string GrpcPortSettingsKey = "GrpcPort";
 
-    public const string MinAvailableYearSettingsKey = "MinAvailableYear";
+    public const string CacheSettingsKey = "Cache";
 }

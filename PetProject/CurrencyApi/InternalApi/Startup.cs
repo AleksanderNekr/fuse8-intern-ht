@@ -79,6 +79,9 @@ public class Startup
         IConfigurationSection currenciesSection = _configuration.GetSection(CurrencyApiConstants.CurrenciesSettingsKey);
         services.Configure<CurrenciesSettings>(currenciesSection);
 
+        IConfigurationSection cacheSection = _configuration.GetSection(CurrencyApiConstants.CacheSettingsKey);
+        services.Configure<CacheSettings>(cacheSection);
+
         services.AddGrpc();
 
         return;

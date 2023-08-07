@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+using Microsoft.Extensions.Options;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
@@ -10,26 +11,14 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 
 public sealed class CacheWorkerService
 {
-    private const string CacheFolderName    = "Cache";
-    private const string FilesSearchPattern = "*.json";
-    private const string DateSeparator      = "-";
-    private const string TimeSeparator      = "_";
-
     private readonly ILogger<CacheWorkerService>  _logger;
     private          DirectoryInfo?               _cacheDirInfo;
     private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
-    private static readonly IFormatProvider DateTimeCulture =
-        new DateTimeFormatInfo
-        {
-            ShortDatePattern    = "dd-MM-yyyy",
-            ShortTimePattern    = "HH_mm_ss",
-            LongTimePattern     = "HH_mm_ss",
-            LongDatePattern     = "dd-MM-yyyy",
-            FullDateTimePattern = "dd-MM-yyyy HH_mm_ss",
-            DateSeparator       = DateSeparator,
-            TimeSeparator       = TimeSeparator
-        };
+    private readonly IFormatProvider _dateTimeCulture;
+    private readonly string          _filesSearchPattern;
+    private readonly string          _cacheFolderPath;
+    private readonly string          _fileExtension;
 
     private static readonly JsonSerializerOptions JsonSerializerOptions =
         new()
@@ -38,11 +27,23 @@ public sealed class CacheWorkerService
             WriteIndented = true
         };
 
-    private static readonly string CacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(), CacheFolderName);
-
-    public CacheWorkerService(ILogger<CacheWorkerService> logger)
+    public CacheWorkerService(ILogger<CacheWorkerService> logger, IOptionsMonitor<CacheSettings> optionsMonitor)
     {
         _logger = logger;
+        CacheSettings settings = optionsMonitor.CurrentValue;
+        _fileExtension      = settings.FileExtension;
+        _filesSearchPattern = $"*{_fileExtension}";
+        _dateTimeCulture = new DateTimeFormatInfo
+                           {
+                               ShortDatePattern    = settings.DatePattern,
+                               LongDatePattern     = settings.DatePattern,
+                               ShortTimePattern    = settings.TimePattern,
+                               LongTimePattern     = settings.TimePattern,
+                               FullDateTimePattern = $"{settings.DatePattern} {settings.TimePattern}",
+                               DateSeparator       = settings.DateSeparator,
+                               TimeSeparator       = settings.TimePattern
+                           };
+        _cacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(), settings.CacheFolderName);
     }
 
     internal async Task SaveToCache(DateTime          updatedAt,
@@ -50,7 +51,7 @@ public sealed class CacheWorkerService
                                     CancellationToken cancellationToken)
     {
         string fileName = DateTimeToFileName(updatedAt);
-        string filePath = Path.Combine(CacheFolderPath, fileName);
+        string filePath = Path.Combine(_cacheFolderPath, fileName);
 
         await using FileStream fileStream = new(filePath, FileMode.CreateNew);
         await JsonSerializer.SerializeAsync(fileStream,
@@ -78,7 +79,7 @@ public sealed class CacheWorkerService
 
     internal void UpdateCacheInfo()
     {
-        var cacheDirInfo = new DirectoryInfo(CacheFolderPath);
+        var cacheDirInfo = new DirectoryInfo(_cacheFolderPath);
         if (_cacheDirInfo is not null && DidNotChange())
         {
             _logger.LogDebug("Cache did not change");
@@ -88,8 +89,8 @@ public sealed class CacheWorkerService
 
         _logger.LogDebug("Detected cache changes");
         _cacheDirInfo = cacheDirInfo;
-        _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(FilesSearchPattern)
-                                       .ToImmutableSortedSet(comparer: new FileInfoComparerByNameReversed());
+        _cacheFilesInfo = _cacheDirInfo.EnumerateFiles(_filesSearchPattern)
+                                       .ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
 
         return;
 
@@ -138,14 +139,14 @@ public sealed class CacheWorkerService
         return hourDifference;
     }
 
-    private static DateTime ParseDateTimeFromFileName(FileSystemInfo file)
+    private DateTime ParseDateTimeFromFileName(FileSystemInfo file)
     {
-        return DateTime.Parse(Path.GetFileNameWithoutExtension(file.Name), DateTimeCulture);
+        return DateTime.Parse(Path.GetFileNameWithoutExtension(file.Name), _dateTimeCulture);
     }
 
-    private static string DateTimeToFileName(DateTime dateTime)
+    private string DateTimeToFileName(DateTime dateTime)
     {
-        return $"{dateTime.ToString(DateTimeCulture)}.json";
+        return $"{dateTime.ToString(_dateTimeCulture)}{_fileExtension}";
     }
 
     private bool CacheEmpty()
@@ -153,28 +154,25 @@ public sealed class CacheWorkerService
         return _cacheFilesInfo.Count == 0;
     }
 
-    private sealed class FileInfoComparerByNameReversed : IComparer<FileInfo>
+    private int Compare(FileInfo? x, FileInfo? y)
     {
-        public int Compare(FileInfo? x, FileInfo? y)
+        if (ReferenceEquals(x, y))
         {
-            if (ReferenceEquals(x, y))
-            {
-                return 0;
-            }
-
-            if (ReferenceEquals(null, y))
-            {
-                return -1;
-            }
-
-            if (ReferenceEquals(null, x))
-            {
-                return 1;
-            }
-
-            // Дата создания файла может быть некорректной при передаче, поэтому сравнение не по ней, а по названию
-            // файла, которое и есть дата его создания.
-            return ParseDateTimeFromFileName(y).CompareTo(ParseDateTimeFromFileName(x));
+            return 0;
         }
+
+        if (ReferenceEquals(null, y))
+        {
+            return -1;
+        }
+
+        if (ReferenceEquals(null, x))
+        {
+            return 1;
+        }
+
+        // Дата создания файла может быть некорректной при передаче, поэтому сравнение не по ней, а по названию
+        // файла, которое и есть дата его создания.
+        return ParseDateTimeFromFileName(y).CompareTo(ParseDateTimeFromFileName(x));
     }
 }
