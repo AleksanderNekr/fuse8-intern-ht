@@ -22,7 +22,7 @@ public readonly record struct SettingsInfo
     /// <summary>
     ///     Доступны ли еще запросы к внешнему API.
     /// </summary>
-    [JsonPropertyName("requestLimit")]
+    [JsonPropertyName("newRequestsAvailable")]
     public required bool NewRequestsAvailable { get; init; }
 
     /// <summary>
