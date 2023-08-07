@@ -15,10 +15,10 @@ public sealed class CacheWorkerService
     private          DirectoryInfo?               _cacheDirInfo;
     private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
 
-    private readonly IFormatProvider _dateTimeCulture;
-    private readonly string          _filesSearchPattern;
-    private readonly string          _cacheFolderPath;
-    private readonly string          _fileExtension;
+    private readonly DateTimeFormatInfo _dateTimeFormat;
+    private readonly string             _filesSearchPattern;
+    private readonly string             _cacheFolderPath;
+    private readonly string             _fileExtension;
 
     private static readonly JsonSerializerOptions JsonSerializerOptions =
         new()
@@ -33,7 +33,7 @@ public sealed class CacheWorkerService
         CacheSettings settings = optionsMonitor.CurrentValue;
         _fileExtension      = settings.FileExtension;
         _filesSearchPattern = $"*{_fileExtension}";
-        _dateTimeCulture = new DateTimeFormatInfo
+        _dateTimeFormat = new DateTimeFormatInfo
                            {
                                ShortDatePattern    = settings.DatePattern,
                                LongDatePattern     = settings.DatePattern,
@@ -41,7 +41,7 @@ public sealed class CacheWorkerService
                                LongTimePattern     = settings.TimePattern,
                                FullDateTimePattern = $"{settings.DatePattern} {settings.TimePattern}",
                                DateSeparator       = settings.DateSeparator,
-                               TimeSeparator       = settings.TimePattern
+                               TimeSeparator       = settings.TimeSeparator
                            };
         _cacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(), settings.CacheFolderName);
     }
@@ -141,12 +141,12 @@ public sealed class CacheWorkerService
 
     private DateTime ParseDateTimeFromFileName(FileSystemInfo file)
     {
-        return DateTime.Parse(Path.GetFileNameWithoutExtension(file.Name), _dateTimeCulture);
+        return DateTime.Parse(Path.GetFileNameWithoutExtension(file.Name), _dateTimeFormat);
     }
 
     private string DateTimeToFileName(DateTime dateTime)
     {
-        return $"{dateTime.ToString(_dateTimeCulture)}{_fileExtension}";
+        return $"{dateTime.ToString(_dateTimeFormat)}{_fileExtension}";
     }
 
     private bool CacheEmpty()
