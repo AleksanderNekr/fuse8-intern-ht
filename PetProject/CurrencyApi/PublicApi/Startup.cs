@@ -5,7 +5,6 @@ using Audit.Serilog.Configuration;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Handlers;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.OpenApi.Models;
