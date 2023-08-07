@@ -1,138 +1,81 @@
-﻿using System.Net;
-using System.Text.Json;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Exceptions;
+﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+using Google.Protobuf.WellKnownTypes;
+using Grpc.Core;
+using Microsoft.Extensions.Options;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 
 /// <inheritdoc />
 public sealed class CurrencyApiService : ICurrencyApiService
 {
-    private readonly HttpClient _httpClient;
+    private readonly CurrencyApiGrpc.CurrencyApiGrpcClient _grpcClient;
+    private readonly CurrenciesSettings                    _settings;
 
-    public CurrencyApiService(HttpClient httpClient)
+    public CurrencyApiService(CurrencyApiGrpc.CurrencyApiGrpcClient grpcClient,
+                              IOptionsMonitor<CurrenciesSettings>   optionsMonitor)
     {
-        _httpClient = httpClient;
+        _grpcClient = grpcClient;
+        _settings   = optionsMonitor.CurrentValue;
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyInfo> GetCurrencyInfoAsync(string            currency,
-                                                         string            baseCurrency,
+    public async Task<CurrencyInfo> GetCurrencyInfoAsync(CurrencyType      currency,
                                                          int               decimalPlace,
                                                          CancellationToken stopToken)
     {
-        await CheckRequestsLimitAsync(stopToken);
-
-        var requestUri = $"latest?currencies={currency}&base_currency={baseCurrency}";
-
-        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, stopToken);
-        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-        {
-            throw new CurrencyNotFoundException(nameof(currency), currency);
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        string  responseBody = await response.Content.ReadAsStringAsync(stopToken);
-        decimal value        = GetCurrencyFromResponse(currency, responseBody);
-        decimal roundedValue = Math.Round(value, decimalPlace);
+        CurrencyRequest request = new() { Code = (CurrencyCode)currency };
+        CurrencyResponse response = await _grpcClient.GetCurrentCurrencyAsync(request,
+                                                                              options: new CallOptions(
+                                                                                   cancellationToken: stopToken));
+        decimal value   = decimal.Parse(response.Value);
+        decimal rounded = Math.Round(value, decimalPlace);
 
         return new CurrencyInfo
                {
                    Code  = currency,
-                   Value = roundedValue,
+                   Value = rounded,
                };
     }
 
     /// <inheritdoc />
-    public async Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(string            currency,
-                                                                     string            baseCurrency,
+    public async Task<CurrencyOnDateInfo> GetCurrencyInfoOnDateAsync(CurrencyType      currency,
                                                                      int               decimalPlace,
                                                                      DateOnly          date,
                                                                      CancellationToken stopToken)
     {
-        await CheckRequestsLimitAsync(stopToken);
-
-        var requestUri = $"historical?currencies={currency}&base_currency={baseCurrency}&&date={date}";
-
-        HttpResponseMessage response = await _httpClient.GetAsync(requestUri, stopToken);
-        if (response.StatusCode == HttpStatusCode.UnprocessableEntity)
-        {
-            throw new CurrencyNotFoundException(nameof(currency), currency);
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        string  responseBody = await response.Content.ReadAsStringAsync(stopToken);
-        decimal value        = GetCurrencyFromResponse(currency, responseBody);
-        decimal roundedValue = Math.Round(value, decimalPlace);
+        var dateTime = date.ToDateTime(TimeOnly.MaxValue);
+        CurrencyOnDateRequest request = new()
+                                        {
+                                            Date = Timestamp.FromDateTime(dateTime),
+                                            Code = (CurrencyCode)currency
+                                        };
+        CurrencyResponse response = await _grpcClient.GetCurrencyOnDateAsync(request,
+                                                                             options: new CallOptions(
+                                                                                  cancellationToken: stopToken));
+        decimal value   = decimal.Parse(response.Value);
+        decimal rounded = Math.Round(value, decimalPlace);
 
         return new CurrencyOnDateInfo
                {
                    Date  = date,
                    Code  = currency,
-                   Value = roundedValue,
+                   Value = rounded,
                };
     }
 
     /// <inheritdoc />
-    public async Task<MonthSection> GetMonthSectionAsync(CancellationToken stopToken)
+    public async Task<SettingsInfo> GetSettingsAsync(CancellationToken stopToken)
     {
-        const string        requestUri = "status";
-        HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
+        SettingsResponse response = await _grpcClient.GetSettingsAsync(new Empty(),
+                                                                       new CallOptions(cancellationToken: stopToken));
 
-        response.EnsureSuccessStatusCode();
-
-        string       responseBody   = await response.Content.ReadAsStringAsync(stopToken);
-        JsonDocument responseParsed = JsonDocument.Parse(responseBody);
-        JsonElement  quotasSection  = responseParsed.RootElement.GetProperty("quotas");
-        JsonElement  monthSection   = quotasSection.GetProperty("month");
-
-        return new MonthSection
+        return new SettingsInfo
                {
-                   Total     = monthSection.GetProperty("total").GetInt32(),
-                   Remaining = monthSection.GetProperty("remaining").GetInt32(),
-                   Used      = monthSection.GetProperty("used").GetInt32()
+                   DefaultCurrency      = _settings.DefaultCurrency,
+                   BaseCurrency         = response.BaseCurrency,
+                   NewRequestsAvailable = response.HasAvailableRequests,
+                   CurrencyRoundCount   = _settings.DecimalPlace
                };
-    }
-
-    /// <inheritdoc />
-    public async Task<bool> IsConnectedAsync(CancellationToken stopToken)
-    {
-        const string        requestUri = "status";
-        HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
-
-        return response.IsSuccessStatusCode;
-    }
-
-    private static decimal GetCurrencyFromResponse(string currency, string responseBody)
-    {
-        JsonDocument responseParsed  = JsonDocument.Parse(responseBody);
-        JsonElement  dataSection     = responseParsed.RootElement.GetProperty("data");
-        JsonElement  currencySection = dataSection.GetProperty(currency);
-        decimal      value           = currencySection.GetProperty("value").GetDecimal();
-
-        return value;
-    }
-
-    private async Task CheckRequestsLimitAsync(CancellationToken stopToken)
-    {
-        const string        requestUri = "status";
-        HttpResponseMessage response   = await _httpClient.GetAsync(requestUri, stopToken);
-
-        response.EnsureSuccessStatusCode();
-
-        string       responseBody   = await response.Content.ReadAsStringAsync(stopToken);
-        JsonDocument responseParsed = JsonDocument.Parse(responseBody);
-        JsonElement  quotasSection  = responseParsed.RootElement.GetProperty("quotas");
-        JsonElement  monthSection   = quotasSection.GetProperty("month");
-        int          remaining      = monthSection.GetProperty("remaining").GetInt32();
-
-        if (remaining > 0)
-        {
-            return;
-        }
-
-        throw new ApiRequestLimitException("API requests limit exceeded!");
     }
 }
