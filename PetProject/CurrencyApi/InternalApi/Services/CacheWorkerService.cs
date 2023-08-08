@@ -11,9 +11,9 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 
 public sealed class CacheWorkerService
 {
-    private readonly ILogger<CacheWorkerService>  _logger;
-    private          DirectoryInfo?               _cacheDirInfo;
-    private          ImmutableSortedSet<FileInfo> _cacheFilesInfo = null!;
+    private readonly ILogger<CacheWorkerService>   _logger;
+    private          DirectoryInfo?                _cacheDirInfo;
+    private          ImmutableSortedSet<FileInfo>? _cacheFilesInfo;
 
     private readonly DateTimeFormatInfo _dateTimeFormat;
     private readonly string             _filesSearchPattern;
@@ -66,8 +66,8 @@ public sealed class CacheWorkerService
     {
         await using FileStream readFileStream = fileInfo.OpenRead();
         CurrencyInfo[] currencies = await JsonSerializer.DeserializeAsync<CurrencyInfo[]>(readFileStream,
-                                        cancellationToken: cancellationToken,
-                                        options: JsonSerializerOptions)
+                                             cancellationToken: cancellationToken,
+                                             options: JsonSerializerOptions)
                                  ?? throw new InvalidOperationException("Cannot get data from cache file!");
         _logger.LogDebug("Received from cache file {Name}{Newline}{Content}",
                          fileInfo.Name,
@@ -97,7 +97,7 @@ public sealed class CacheWorkerService
         bool DidNotChange()
         {
             return cacheDirInfo.LastWriteTime.Equals(_cacheDirInfo.LastWriteTime)
-                && fileInfos.Length == _cacheFilesInfo.Count;
+                && fileInfos.Length == _cacheFilesInfo?.Count;
         }
     }
 
@@ -105,7 +105,7 @@ public sealed class CacheWorkerService
     {
         return CacheEmpty()
                    ? null
-                   : _cacheFilesInfo[0];
+                   : _cacheFilesInfo?[0];
     }
 
     internal bool CacheIsOlderThan(int hours)
@@ -115,13 +115,13 @@ public sealed class CacheWorkerService
 
     internal FileInfo? TryGetFileOnDate(DateOnly date)
     {
-        return _cacheFilesInfo.FirstOrDefault(file =>
-                                              {
-                                                  DateTime dateTimeCreation = ParseDateTimeFromFileName(file);
-                                                  DateOnly dateCreation     = DateOnly.FromDateTime(dateTimeCreation);
+        return _cacheFilesInfo?.FirstOrDefault(file =>
+                                               {
+                                                   DateTime dateTimeCreation = ParseDateTimeFromFileName(file);
+                                                   DateOnly dateCreation     = DateOnly.FromDateTime(dateTimeCreation);
 
-                                                  return dateCreation == date;
-                                              });
+                                                   return dateCreation == date;
+                                               });
     }
 
     private double? GetHourDifferenceWithNewest()
