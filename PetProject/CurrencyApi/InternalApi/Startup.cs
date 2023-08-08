@@ -27,7 +27,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
+        services.AddControllers()
                 .AddJsonOptions(static options =>
                                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
         services.AddEndpointsApiExplorer();
@@ -108,6 +108,7 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        app.UseMiddleware<ExceptionHandlerMiddleware>();
         if (env.IsDevelopment())
         {
             app.UseSwagger();
