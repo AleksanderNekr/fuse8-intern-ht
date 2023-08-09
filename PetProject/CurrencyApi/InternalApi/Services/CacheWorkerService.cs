@@ -79,25 +79,26 @@ public sealed class CacheWorkerService
 
     internal void UpdateCacheInfo()
     {
-        var        cacheDirInfo = new DirectoryInfo(_cacheFolderPath);
-        FileInfo[] fileInfos    = cacheDirInfo.GetFiles(_filesSearchPattern);
-        if (_cacheDirInfo is not null && DidNotChange())
+        var cacheDirInfo = new DirectoryInfo(_cacheFolderPath);
+
+        if (_cacheDirInfo is null || _cacheFilesInfo is null || Changed())
         {
-            _logger.LogDebug("Cache did not change");
+            _logger.LogDebug("Cache updating. Last write time: {WriteTime}", _cacheDirInfo?.LastWriteTime);
+            _cacheDirInfo = cacheDirInfo;
+            _cacheFilesInfo = cacheDirInfo.EnumerateFiles(_filesSearchPattern)
+                                          .ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
+            _logger.LogDebug("Cache updated. Last write time: {WriteTime}", _cacheDirInfo.LastWriteTime);
 
             return;
         }
 
-        _logger.LogDebug("Detected cache changes");
-        _cacheDirInfo   = cacheDirInfo;
-        _cacheFilesInfo = fileInfos.ToImmutableSortedSet(comparer: Comparer<FileInfo>.Create(Compare));
+        _logger.LogDebug("Cache did not change. Last write time: {WriteTime}", _cacheDirInfo.LastWriteTime);
 
         return;
 
-        bool DidNotChange()
+        bool Changed()
         {
-            return cacheDirInfo.LastWriteTime.Equals(_cacheDirInfo.LastWriteTime)
-                && fileInfos.Length == _cacheFilesInfo?.Count;
+            return cacheDirInfo.LastWriteTime != _cacheDirInfo.LastWriteTime;
         }
     }
 
