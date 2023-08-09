@@ -50,6 +50,7 @@ public sealed class CacheWorkerService
                                     CurrencyInfo[]    currenciesInfo,
                                     CancellationToken cancellationToken)
     {
+        _logger.LogDebug("Before saving. Last write time: {WriteTime}", _cacheDirInfo?.LastWriteTime);
         string fileName = DateTimeToFileName(updatedAt);
         string filePath = Path.Combine(_cacheFolderPath, fileName);
 
@@ -59,26 +60,31 @@ public sealed class CacheWorkerService
                                             cancellationToken: cancellationToken,
                                             options: JsonSerializerOptions);
 
-        _logger.LogDebug("Saved to cache {Name}{Newline}{Currency}", fileName, Environment.NewLine, currenciesInfo);
+        _logger.LogDebug("Saved to cache {Name} {Currency}. Last write time: {WriteTime}",
+                         fileName,
+                         currenciesInfo,
+                         _cacheDirInfo?.LastWriteTime);
     }
 
     internal async Task<CurrencyInfo[]> GetFromCache(FileInfo fileInfo, CancellationToken cancellationToken)
     {
+        _logger.LogDebug("Before receiving. Last write time: {WriteTime}", _cacheDirInfo?.LastWriteTime);
         await using FileStream readFileStream = fileInfo.OpenRead();
         CurrencyInfo[] currencies = await JsonSerializer.DeserializeAsync<CurrencyInfo[]>(readFileStream,
-                                             cancellationToken: cancellationToken,
-                                             options: JsonSerializerOptions)
+                                        cancellationToken: cancellationToken,
+                                        options: JsonSerializerOptions)
                                  ?? throw new InvalidOperationException("Cannot get data from cache file!");
-        _logger.LogDebug("Received from cache file {Name}{Newline}{Content}",
+        _logger.LogDebug("Received from cache file {Name} {Content}. Last write time: {WriteTime}",
                          fileInfo.Name,
-                         Environment.NewLine,
-                         currencies);
+                         currencies,
+                         _cacheDirInfo?.LastWriteTime);
 
         return currencies;
     }
 
     internal void UpdateCacheInfo()
     {
+        _logger.LogDebug("Before updating. Last write time: {WriteTime}", _cacheDirInfo?.LastWriteTime);
         var cacheDirInfo = new DirectoryInfo(_cacheFolderPath);
 
         if (_cacheDirInfo is null || _cacheFilesInfo is null || Changed())
