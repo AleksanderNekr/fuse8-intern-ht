@@ -2,7 +2,7 @@
 using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
+using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
