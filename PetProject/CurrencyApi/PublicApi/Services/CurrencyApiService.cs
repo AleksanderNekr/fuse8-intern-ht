@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
+using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -29,7 +29,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         CurrencyResponse response = await _grpcClient.GetCurrentCurrencyAsync(request,
                                                                               options: new CallOptions(
                                                                                    cancellationToken: stopToken));
-        decimal value   = decimal.Parse(response.Value, CultureInfo.InvariantCulture);
+        decimal value   = response.Value;
         decimal rounded = Math.Round(value, decimalPlace);
 
         return new CurrencyInfo
@@ -54,7 +54,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         CurrencyResponse response = await _grpcClient.GetCurrencyOnDateAsync(request,
                                                                              options: new CallOptions(
                                                                                   cancellationToken: stopToken));
-        decimal value   = decimal.Parse(response.Value, CultureInfo.InvariantCulture);
+        decimal value   = response.Value;
         decimal rounded = Math.Round(value, decimalPlace);
 
         return new CurrencyOnDateInfo

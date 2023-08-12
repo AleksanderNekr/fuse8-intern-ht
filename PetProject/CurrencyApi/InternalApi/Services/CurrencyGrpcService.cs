@@ -1,7 +1,6 @@
-﻿using System.Globalization;
+﻿using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.Options;
@@ -38,7 +37,7 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
 
         CurrencyResponse response = new()
                                     {
-                                        Value = currencyInfo.Value.ToString(CultureInfo.InvariantCulture)
+                                        Value = currencyInfo.Value
                                     };
 
         return response;
@@ -56,7 +55,7 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
 
         CurrencyResponse response = new()
                                     {
-                                        Value = currencyInfo.Value.ToString(CultureInfo.InvariantCulture)
+                                        Value = currencyInfo.Value
                                     };
 
         return response;
