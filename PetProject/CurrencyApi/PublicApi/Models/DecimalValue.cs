@@ -3,14 +3,14 @@ namespace Fuse8_ByteMinds.SummerSchool.Grpc;
 
 public partial class DecimalValue
 {
-    private const decimal NanoFactor = 1_000_000_000;
+    private const decimal NanoFactor = 1_000_000_000_000;
 
     /// <summary>
     /// Представляет реализацию decimal для gRPC сервиса.
     /// </summary>
     /// <param name="units">Целая часть.</param>
     /// <param name="nanos">Дробная часть.</param>
-    public DecimalValue(long units, int nanos)
+    public DecimalValue(long units, long nanos)
     {
         Units = units;
         Nanos = nanos;
@@ -35,7 +35,7 @@ public partial class DecimalValue
     {
         var     units      = decimal.ToInt64(decimalValue);
         decimal afterPoint = decimalValue - units;
-        var     nanos      = decimal.ToInt32(afterPoint * NanoFactor);
+        var     nanos      = decimal.ToInt64(afterPoint * NanoFactor);
 
         return new DecimalValue(units, nanos);
     }
