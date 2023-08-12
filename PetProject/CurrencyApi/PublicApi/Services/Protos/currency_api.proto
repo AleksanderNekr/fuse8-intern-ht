@@ -48,5 +48,5 @@ message DecimalValue {
 
   // Nano units of the amount (10^-9)
   // Must be same sign as units
-  int64 nanos = 2;
+  sfixed64 nanos = 2;
 }
