@@ -1,5 +1,6 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;

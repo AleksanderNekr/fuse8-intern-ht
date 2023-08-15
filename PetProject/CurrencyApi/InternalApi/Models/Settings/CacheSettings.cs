@@ -1,5 +1,5 @@
 ﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 
 public record CacheSettings
 {

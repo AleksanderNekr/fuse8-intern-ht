@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Microsoft.Extensions.Options;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member

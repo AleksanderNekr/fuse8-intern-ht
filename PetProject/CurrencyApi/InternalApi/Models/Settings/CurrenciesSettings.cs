@@ -1,4 +1,4 @@
-﻿namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+﻿namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 
 /// <summary>
 /// Модель настроек API.
