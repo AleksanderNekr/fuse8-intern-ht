@@ -13,4 +13,8 @@ internal static class CurrencyApiConstants
     public const string GrpcPortSettingsKey = "GrpcPort";
 
     public const string CacheSettingsKey = "Cache";
+
+    public const string DbConnectionString = "LocalConnection";
+
+    public const string SchemaName = "cur";
 }

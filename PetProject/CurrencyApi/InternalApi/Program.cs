@@ -36,4 +36,9 @@ internal sealed class Program
                                           : HttpProtocols.Http1;
         }
     }
+
+    // EF Core uses this method at design time to access the DbContext.
+    public static IHostBuilder CreateHostBuilder(string[] args) =>
+        Host.CreateDefaultBuilder(args)
+            .ConfigureWebHostDefaults(static webBuilder => webBuilder.UseStartup<Startup>());
 }

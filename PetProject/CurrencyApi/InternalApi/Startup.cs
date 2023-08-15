@@ -10,6 +10,8 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -28,6 +30,19 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        string connectionString = _configuration.GetConnectionString(CurrencyApiConstants.DbConnectionString)!;
+        services.AddDbContext<CurrencyInternalContext>(builder =>
+                                                       {
+                                                           builder.UseNpgsql(connectionString,
+                                                                             static optionsBuilder =>
+                                                                             {
+                                                                                 optionsBuilder.EnableRetryOnFailure();
+                                                                                 optionsBuilder.MigrationsHistoryTable(
+                                                                                  HistoryRepository.DefaultTableName,
+                                                                                  CurrencyApiConstants.SchemaName);
+                                                                             });
+                                                       });
+
         services.AddControllers()
                 .AddJsonOptions(static options =>
                                     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
