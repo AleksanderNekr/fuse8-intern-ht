@@ -116,11 +116,32 @@ public sealed class CacheWorkerService
         return CacheEmpty()
                    ? null
                    : _cacheFilesInfo?[0];
+
+        bool CacheEmpty()
+        {
+            return _cacheFilesInfo is null || _cacheFilesInfo.Count == 0;
+        }
     }
 
-    internal bool CacheIsOlderThan(int hours)
+    internal bool CacheOutdated()
     {
-        return GetHourDifferenceWithNewest() > hours;
+        return HourDifferenceWithNewest() > _cacheRelevanceHours;
+
+        double? HourDifferenceWithNewest()
+        {
+            FileInfo? newestFile = TryGetNewestFile();
+            if (newestFile is null)
+            {
+                return null;
+            }
+
+            DateTime current = DateTime.Now;
+            DateTime another = ParseDateTimeFromFileName(newestFile);
+
+            double hourDifference = (current - another).TotalHours;
+
+            return hourDifference;
+        }
     }
 
     internal FileInfo? TryGetFileOnDate(DateOnly date)
@@ -134,22 +155,6 @@ public sealed class CacheWorkerService
                                                });
     }
 
-    private double? GetHourDifferenceWithNewest()
-    {
-        FileInfo? newestFile = TryGetNewestFile();
-        if (newestFile is null)
-        {
-            return null;
-        }
-
-        DateTime current = DateTime.Now;
-        DateTime another = ParseDateTimeFromFileName(newestFile);
-
-        double hourDifference = (current - another).TotalHours;
-
-        return hourDifference;
-    }
-
     private DateTime ParseDateTimeFromFileName(FileSystemInfo file)
     {
         return DateTime.Parse(Path.GetFileNameWithoutExtension(file.Name), _dateTimeFormat);
@@ -158,11 +163,6 @@ public sealed class CacheWorkerService
     private string DateTimeToFileName(DateTime dateTime)
     {
         return $"{dateTime.ToString(_dateTimeFormat)}{_fileExtension}";
-    }
-
-    private bool CacheEmpty()
-    {
-        return _cacheFilesInfo is null || _cacheFilesInfo.Count == 0;
     }
 
     private int Compare(FileInfo? x, FileInfo? y)

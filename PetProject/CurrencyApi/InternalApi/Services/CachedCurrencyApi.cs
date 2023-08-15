@@ -34,7 +34,7 @@ public class CachedCurrencyApi : ICachedCurrencyAPI
 
         CurrencyInfo[] currenciesInfo;
         CurrencyInfo   currencyInfo;
-        if (newestFile is null || _cacheService.CacheIsOlderThan(_settings.CacheRelevanceHours))
+        if (newestFile is null || _cacheService.CacheOutdated())
         {
             _logger.LogDebug("Did not find relevant cache file");
 
