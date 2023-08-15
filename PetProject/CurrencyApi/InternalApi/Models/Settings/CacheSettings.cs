@@ -14,4 +14,6 @@ public record CacheSettings
     public required string DatePattern { get; init; }
 
     public required string TimePattern { get; init; }
+
+    public required int CacheRelevanceHours { get; init; }
 }

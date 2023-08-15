@@ -19,6 +19,7 @@ public sealed class CacheWorkerService
     private readonly string             _filesSearchPattern;
     private readonly string             _cacheFolderPath;
     private readonly string             _fileExtension;
+    private readonly int                _cacheRelevanceHours;
 
     private static readonly JsonSerializerOptions JsonSerializerOptions =
         new()
@@ -43,7 +44,8 @@ public sealed class CacheWorkerService
                               DateSeparator       = settings.DateSeparator,
                               TimeSeparator       = settings.TimeSeparator
                           };
-        _cacheFolderPath = Path.Combine(Directory.GetCurrentDirectory(), settings.CacheFolderName);
+        _cacheFolderPath     = Path.Combine(Directory.GetCurrentDirectory(), settings.CacheFolderName);
+        _cacheRelevanceHours = settings.CacheRelevanceHours;
     }
 
     internal async Task SaveToCache(DateTime          updatedAt,
@@ -71,8 +73,8 @@ public sealed class CacheWorkerService
         _logger.LogDebug("Before receiving. Last write time: {WriteTime}", _cacheDirInfo?.LastWriteTime);
         await using FileStream readFileStream = fileInfo.OpenRead();
         CurrencyInfo[] currencies = await JsonSerializer.DeserializeAsync<CurrencyInfo[]>(readFileStream,
-                                        cancellationToken: cancellationToken,
-                                        options: JsonSerializerOptions)
+                                             cancellationToken: cancellationToken,
+                                             options: JsonSerializerOptions)
                                  ?? throw new InvalidOperationException("Cannot get data from cache file!");
         _logger.LogDebug("Received from cache file {Name} {Content}. Last write time: {WriteTime}",
                          fileInfo.Name,
