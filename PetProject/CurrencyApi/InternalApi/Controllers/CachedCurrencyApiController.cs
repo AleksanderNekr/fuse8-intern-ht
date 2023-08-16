@@ -1,5 +1,5 @@
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers

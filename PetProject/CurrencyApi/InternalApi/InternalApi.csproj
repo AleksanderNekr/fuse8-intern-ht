@@ -42,6 +42,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="Services\Protos\currency_api.proto" GrpcServices="Server"/>
+      <Protobuf Include="Services\Grpc\Protos\currency_api.proto">
+        <Generator>MSBuild:Compile</Generator>
+      </Protobuf>
     </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 
 /// <summary>
 /// Сервис получения данных о курсах всех возможных валют.

@@ -1,4 +1,4 @@
-﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Microsoft.AspNetCore.Mvc;
 using static Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers.HealthCheckResult;
 

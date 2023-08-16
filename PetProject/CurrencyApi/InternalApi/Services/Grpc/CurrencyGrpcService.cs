@@ -1,12 +1,13 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.Options;
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 
 /// <inheritdoc />
 public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase

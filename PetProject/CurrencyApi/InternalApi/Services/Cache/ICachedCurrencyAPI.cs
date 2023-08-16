@@ -1,6 +1,6 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
 
 /// <summary>
 /// Сервис получения данных о курсе валюты, используя кэширование.

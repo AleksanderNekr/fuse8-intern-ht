@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
 
 public sealed class CacheWorkerService
 {
