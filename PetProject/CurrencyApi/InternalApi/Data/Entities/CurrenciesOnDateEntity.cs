@@ -8,5 +8,5 @@ public class CurrenciesOnDateEntity
     public DateTime LastUpdatedAt { get; set; }
 
     // Nav property.
-    public List<CurrencyInfoEntity> Currencies { get; set; } = null!;
+    public List<CurrencyInfoEntity> Currencies { get; set; } = new();
 }
