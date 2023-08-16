@@ -21,10 +21,17 @@ public class CurrencyInfoConfig : IEntityTypeConfiguration<CurrencyInfoEntity>
                .HasColumnName("value")
                .HasColumnType("decimal");
 
+        builder.Property(static entity => entity.UpdatedAt)
+               .HasColumnName("updated_at")
+               .HasColumnType("timestamptz");
+
         builder.HasOne(static currInfo => currInfo.CurrenciesOnDate)
                .WithMany(static currOnDate => currOnDate.Currencies)
                .HasForeignKey(static currInfo => currInfo.UpdatedAt)
                .HasConstraintName("currencies_on_date_have_infos_fk");
+
+        builder.HasKey(static entity => entity.Code)
+               .HasName("currency_info_pk");
 
         builder.ToTable("currency_info");
     }
