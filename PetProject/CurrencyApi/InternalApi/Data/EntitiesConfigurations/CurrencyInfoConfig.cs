@@ -31,7 +31,7 @@ public class CurrencyInfoConfig : IEntityTypeConfiguration<CurrencyInfoEntity>
                .HasConstraintName("currencies_on_date_have_infos_fk")
                .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasKey(static entity => entity.Code)
+        builder.HasKey(static entity => new { entity.Code, entity.UpdatedAt })
                .HasName("currency_info_pk");
 
         builder.ToTable("currency_info",
