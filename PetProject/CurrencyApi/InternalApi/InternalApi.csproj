@@ -16,6 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="EFCore.CheckConstraints" Version="7.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.9"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.10"/>
         <PackageReference Include="Npgsql" Version="7.0.4"/>
@@ -38,7 +39,6 @@
 
     <ItemGroup>
         <Folder Include="Cache\"/>
-        <Folder Include="Migrations\"/>
     </ItemGroup>
 
     <ItemGroup>

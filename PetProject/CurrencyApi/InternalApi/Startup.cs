@@ -3,9 +3,9 @@ using Audit.Core;
 using Audit.Http;
 using Audit.Serilog.Configuration;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Filters;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Data;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Handlers;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Middlewares;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Contracts;
@@ -40,7 +40,8 @@ public class Startup
                                                                                  optionsBuilder.MigrationsHistoryTable(
                                                                                   HistoryRepository.DefaultTableName,
                                                                                   CurrencyApiConstants.SchemaName);
-                                                                             });
+                                                                             })
+                                                                  .UseAllCheckConstraints();
                                                        });
 
         services.AddControllers()
