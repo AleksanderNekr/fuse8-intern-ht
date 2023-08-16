@@ -34,6 +34,8 @@ public class CurrencyInfoConfig : IEntityTypeConfiguration<CurrencyInfoEntity>
         builder.HasKey(static entity => entity.Code)
                .HasName("currency_info_pk");
 
-        builder.ToTable("currency_info");
+        builder.ToTable("currency_info",
+                        static tableBuilder => tableBuilder.HasCheckConstraint("cur_value_positive_ch",
+                                                                               "value >= 0"));
     }
 }

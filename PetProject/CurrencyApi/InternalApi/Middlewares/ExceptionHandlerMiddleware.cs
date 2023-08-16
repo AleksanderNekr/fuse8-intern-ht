@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Filters;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Middlewares;
 
 public class ExceptionHandlerMiddleware
 {

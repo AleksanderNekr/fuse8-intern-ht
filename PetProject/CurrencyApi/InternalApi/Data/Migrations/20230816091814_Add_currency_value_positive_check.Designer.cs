@@ -3,17 +3,20 @@ using System;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Migrations
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
 {
     [DbContext(typeof(CurrencyInternalContext))]
-    partial class CurrencyInternalContextModelSnapshot : ModelSnapshot
+    [Migration("20230816091814_Add_currency_value_positive_check")]
+    partial class Add_currency_value_positive_check
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,7 +62,7 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Migrations
 
                     b.ToTable("currency_info", "cur", t =>
                         {
-                            t.HasCheckConstraint("CK_currency_info_code_Enum", "code IN ('USD', 'RUB', 'KZT', 'EUR')");
+                            t.HasCheckConstraint("currency_info_code_enum_ch", "code IN ('USD', 'RUB', 'KZT', 'EUR')");
 
                             t.HasCheckConstraint("cur_value_positive_ch", "value >= 0");
                         });
