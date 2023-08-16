@@ -3,17 +3,20 @@ using System;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Migrations
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
 {
     [DbContext(typeof(CurrencyInternalContext))]
-    partial class CurrencyInternalContextModelSnapshot : ModelSnapshot
+    [Migration("20230816090245_Add_cascade_on_delete_for_currency_info")]
+    partial class Add_cascade_on_delete_for_currency_info
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

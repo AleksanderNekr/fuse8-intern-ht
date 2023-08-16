@@ -28,7 +28,8 @@ public class CurrencyInfoConfig : IEntityTypeConfiguration<CurrencyInfoEntity>
         builder.HasOne(static currInfo => currInfo.CurrenciesOnDate)
                .WithMany(static currOnDate => currOnDate.Currencies)
                .HasForeignKey(static currInfo => currInfo.UpdatedAt)
-               .HasConstraintName("currencies_on_date_have_infos_fk");
+               .HasConstraintName("currencies_on_date_have_infos_fk")
+               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasKey(static entity => entity.Code)
                .HasName("currency_info_pk");
