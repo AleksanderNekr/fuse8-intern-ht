@@ -3,21 +3,21 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Microsoft.Extensions.Options;
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Local;
 
 /// <inheritdoc />
-public class CachedCurrencyApi : ICachedCurrencyAPI
+public class LocalCachedCurrencyApi : ICachedCurrencyAPI
 {
     private readonly ICurrencyApiService        _currencyApi;
-    private readonly CacheWorkerService         _cacheService;
+    private readonly LocalCacheWorkerService         _cacheService;
     private readonly CurrenciesSettings         _settings;
-    private readonly ILogger<CachedCurrencyApi> _logger;
+    private readonly ILogger<LocalCachedCurrencyApi> _logger;
 
     /// <inheritdoc cref="ICachedCurrencyAPI" />
-    public CachedCurrencyApi(ICurrencyApiService                 currencyApi,
+    public LocalCachedCurrencyApi(ICurrencyApiService                 currencyApi,
                              IOptionsMonitor<CurrenciesSettings> currenciesMonitor,
-                             CacheWorkerService                  cacheService,
-                             ILogger<CachedCurrencyApi>          logger)
+                             LocalCacheWorkerService                  cacheService,
+                             ILogger<LocalCachedCurrencyApi>          logger)
     {
         _currencyApi  = currencyApi;
         _cacheService = cacheService;

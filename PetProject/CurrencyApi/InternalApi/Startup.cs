@@ -9,6 +9,7 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Middlewares;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Local;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
@@ -82,8 +83,8 @@ public class Startup
                             })
            .AddHttpMessageHandler<ApiKeyHandler>();
 
-        services.AddTransient<ICachedCurrencyAPI, CachedCurrencyApi>();
-        services.AddSingleton<CacheWorkerService>();
+        services.AddTransient<ICachedCurrencyAPI, LocalCachedCurrencyApi>();
+        services.AddSingleton<LocalCacheWorkerService>();
 
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
                                               .CreateLogger();

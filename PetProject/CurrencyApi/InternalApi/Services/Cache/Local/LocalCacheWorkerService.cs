@@ -8,11 +8,11 @@ using Microsoft.Extensions.Options;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Local;
 
-public sealed class CacheWorkerService
+public sealed class LocalCacheWorkerService
 {
-    private readonly ILogger<CacheWorkerService>   _logger;
+    private readonly ILogger<LocalCacheWorkerService>   _logger;
     private          DirectoryInfo?                _cacheDirInfo;
     private          ImmutableSortedSet<FileInfo>? _cacheFilesInfo;
 
@@ -29,7 +29,7 @@ public sealed class CacheWorkerService
             WriteIndented = true
         };
 
-    public CacheWorkerService(ILogger<CacheWorkerService> logger, IOptionsMonitor<CacheSettings> optionsMonitor)
+    public LocalCacheWorkerService(ILogger<LocalCacheWorkerService> logger, IOptionsMonitor<CacheSettings> optionsMonitor)
     {
         _logger = logger;
         CacheSettings settings = optionsMonitor.CurrentValue;
