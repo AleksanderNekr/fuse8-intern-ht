@@ -38,6 +38,7 @@ public class Startup
                                                                                 CurrencyApiConstants.SchemaName);
                                                                            });
                                                      });
+        services.AddScoped<CurrencyPublicRepository>();
 
         services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
 

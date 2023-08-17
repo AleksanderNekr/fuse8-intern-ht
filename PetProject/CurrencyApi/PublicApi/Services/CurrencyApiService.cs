@@ -12,13 +12,13 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 public sealed class CurrencyApiService : ICurrencyApiService
 {
     private readonly CurrencyApiGrpc.CurrencyApiGrpcClient _grpcClient;
-    private readonly CurrencyPublicContext                 _context;
+    private readonly CurrencyPublicRepository              _repository;
 
     public CurrencyApiService(CurrencyApiGrpc.CurrencyApiGrpcClient grpcClient,
-                              CurrencyPublicContext                 context)
+                              CurrencyPublicRepository              repository)
     {
         _grpcClient = grpcClient;
-        _context    = context;
+        _repository = repository;
     }
 
     /// <inheritdoc />
@@ -72,7 +72,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         SettingsResponse response = await _grpcClient.GetSettingsAsync(new Empty(),
                                                                        new CallOptions(cancellationToken: stopToken));
 
-        CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
+        CurrenciesSettings settings = await _repository.GetSettingsAsync(stopToken);
 
         return new SettingsInfo
                {
