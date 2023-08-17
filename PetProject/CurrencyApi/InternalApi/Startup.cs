@@ -41,10 +41,9 @@ public class Startup
                                                                              {
                                                                                  optionsBuilder.EnableRetryOnFailure();
                                                                                  optionsBuilder.MigrationsHistoryTable(
-                                                                                  HistoryRepository.DefaultTableName,
-                                                                                  CurrencyApiConstants.SchemaName);
-                                                                             })
-                                                                  .UseAllCheckConstraints();
+                                                                                      HistoryRepository.DefaultTableName,
+                                                                                      CurrencyApiConstants.SchemaName);
+                                                                             });
                                                        });
 
         services.AddControllers()
