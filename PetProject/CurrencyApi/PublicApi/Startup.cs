@@ -4,10 +4,13 @@ using Audit.Http;
 using Audit.Serilog.Configuration;
 using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -24,6 +27,19 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        string connectionString = _configuration.GetConnectionString(CurrencyApiConstants.DbConnectionString)!;
+        services.AddDbContext<CurrencyPublicContext>(builder =>
+                                                     {
+                                                         builder.UseNpgsql(connectionString,
+                                                                           static optionsBuilder =>
+                                                                           {
+                                                                               optionsBuilder.EnableRetryOnFailure();
+                                                                               optionsBuilder.MigrationsHistoryTable(
+                                                                                HistoryRepository.DefaultTableName,
+                                                                                CurrencyApiConstants.SchemaName);
+                                                                           });
+                                                     });
+
         services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
 
                  // Добавляем глобальные настройки для преобразования Json
