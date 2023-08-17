@@ -1,6 +1,6 @@
-﻿using System.Globalization;
-using Fuse8_ByteMinds.SummerSchool.Grpc;
+﻿using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.Options;

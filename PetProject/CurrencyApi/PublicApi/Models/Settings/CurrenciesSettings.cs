@@ -1,4 +1,4 @@
-﻿namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+﻿namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 
 public sealed record CurrenciesSettings
 {

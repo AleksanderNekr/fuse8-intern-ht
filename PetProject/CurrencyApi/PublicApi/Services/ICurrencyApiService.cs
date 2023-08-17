@@ -1,4 +1,5 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 
