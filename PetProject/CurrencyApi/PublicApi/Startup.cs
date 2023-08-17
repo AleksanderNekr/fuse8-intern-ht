@@ -6,7 +6,6 @@ using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
-using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
@@ -85,10 +84,6 @@ public class Startup
                             });
 
         Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
-
-        IConfigurationSection currenciesSection =
-            _configuration.GetRequiredSection(CurrencyApiConstants.CurrenciesSectionName);
-        services.Configure<CurrenciesSettings>(currenciesSection);
 
         services.AddTransient<ICurrencyApiService, CurrencyApiService>();
 

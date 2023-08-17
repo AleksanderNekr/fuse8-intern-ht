@@ -1,9 +1,10 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.Grpc;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 
@@ -11,13 +12,13 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 public sealed class CurrencyApiService : ICurrencyApiService
 {
     private readonly CurrencyApiGrpc.CurrencyApiGrpcClient _grpcClient;
-    private readonly CurrenciesSettings                    _settings;
+    private readonly CurrencyPublicContext                 _context;
 
     public CurrencyApiService(CurrencyApiGrpc.CurrencyApiGrpcClient grpcClient,
-                              IOptionsMonitor<CurrenciesSettings>   optionsMonitor)
+                              CurrencyPublicContext                 context)
     {
         _grpcClient = grpcClient;
-        _settings   = optionsMonitor.CurrentValue;
+        _context    = context;
     }
 
     /// <inheritdoc />
@@ -71,12 +72,14 @@ public sealed class CurrencyApiService : ICurrencyApiService
         SettingsResponse response = await _grpcClient.GetSettingsAsync(new Empty(),
                                                                        new CallOptions(cancellationToken: stopToken));
 
+        CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
+
         return new SettingsInfo
                {
-                   DefaultCurrency      = _settings.DefaultCurrency,
+                   DefaultCurrency      = settings.DefaultCurrency,
                    BaseCurrency         = response.BaseCurrency,
                    NewRequestsAvailable = response.HasAvailableRequests,
-                   CurrencyRoundCount   = _settings.DecimalPlace
+                   CurrencyRoundCount   = settings.DecimalPlace
                };
     }
 }
