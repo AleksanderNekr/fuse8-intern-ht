@@ -85,7 +85,7 @@ public class Startup
            .AddHttpMessageHandler<ApiKeyHandler>();
 
         services.AddTransient<ICachedCurrencyAPI, DbCachedCurrencyApi>();
-        services.AddSingleton<LocalCacheWorkerService>();
+        services.AddScoped<DbCacheRepository>();
 
         Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
                                               .CreateLogger();
