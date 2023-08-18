@@ -25,8 +25,17 @@ public class FavExchangeRateConfig : IEntityTypeConfiguration<FavoriteExchangeRa
                .HasColumnName("base_currency")
                .HasColumnType("varchar");
 
-        builder.HasKey(static entity => entity.Name)
-               .HasName("fav_exch_rate_name_pk");
+        builder.Property<int>("Id")
+               .HasColumnName("id")
+               .IsRequired()
+               .UseSerialColumn();
+
+        builder.HasKey("Id")
+               .HasName("fav_exch_rate_pk");
+
+        builder.HasIndex(static entity => entity.Name)
+               .IsUnique()
+               .HasDatabaseName("fav_exch_rate_name_uq");
 
         builder.HasIndex(static entity => new { entity.Currency, entity.BaseCurrency })
                .IsUnique()
