@@ -26,6 +26,17 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
+                                              .CreateLogger();
+
+        services.AddLogging(static builder =>
+                            {
+                                builder.ClearProviders();
+                                builder.AddSerilog(dispose: true);
+                            });
+
+        Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
+
         string connectionString = _configuration.GetConnectionString(CurrencyApiConstants.DbConnectionString)!;
         services.AddDbContext<CurrencyPublicContext>(builder =>
                                                      {
@@ -34,11 +45,12 @@ public class Startup
                                                                            {
                                                                                optionsBuilder.EnableRetryOnFailure();
                                                                                optionsBuilder.MigrationsHistoryTable(
-                                                                                HistoryRepository.DefaultTableName,
-                                                                                CurrencyApiConstants.SchemaName);
+                                                                                    HistoryRepository.DefaultTableName,
+                                                                                    CurrencyApiConstants.SchemaName);
                                                                            });
+                                                         builder.LogTo(Log.Debug);
+                                                         builder.EnableSensitiveDataLogging();
                                                      });
-        services.AddScoped<CurrencyPublicRepository>();
 
         services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
 
@@ -75,18 +87,8 @@ public class Startup
         services.AddGrpcClient<CurrencyApiGrpc.CurrencyApiGrpcClient>(options => options.Address = new Uri(grpcAddress))
                 .AddAuditHandler(static configurator => configurator.IncludeRequestBody());
 
-        Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(_configuration)
-                                              .CreateLogger();
-
-        services.AddLogging(static builder =>
-                            {
-                                builder.ClearProviders();
-                                builder.AddSerilog(dispose: true);
-                            });
-
-        Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
-
         services.AddTransient<ICurrencyApiService, CurrencyApiService>();
+        services.AddScoped<CurrencyPublicRepository>();
 
         return;
 

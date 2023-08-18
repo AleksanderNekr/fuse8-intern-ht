@@ -49,10 +49,10 @@ public sealed class CurrencyPublicRepository
         return Task.Run(() => _context.FavoriteExchangeRates.AsEnumerable(), stopToken);
     }
 
-    internal ValueTask<FavoriteExchangeRateEntity?> GetFavoriteByNameAsync(
+    internal Task<FavoriteExchangeRateEntity?> GetFavoriteByNameAsync(
         string favoriteName, CancellationToken cancellationToken)
     {
-        return _context.FavoriteExchangeRates.FindAsync(favoriteName, cancellationToken);
+        return _context.FavoriteExchangeRates.SingleOrDefaultAsync(fav => fav.Name == favoriteName, cancellationToken);
     }
 
     internal async Task<AddFavoriteResult> TryAddFavoriteAsync(string            name, CurrencyType currency,
@@ -97,7 +97,7 @@ public sealed class CurrencyPublicRepository
                                                                      CurrencyType?     newBaseCurrency   = null,
                                                                      CancellationToken cancellationToken = default)
     {
-        FavoriteExchangeRateEntity? found = await _context.FavoriteExchangeRates.FindAsync(oldName, cancellationToken);
+        FavoriteExchangeRateEntity? found = await GetFavoriteByNameAsync(oldName, cancellationToken);
         if (found is null)
         {
             return UpdateFavoriteResult.NotFound;
@@ -105,8 +105,8 @@ public sealed class CurrencyPublicRepository
 
         if (newName is not null && newName != oldName)
         {
-            bool unique = await CheckIfNameUniqueAsync(newName, cancellationToken);
-            if (!unique)
+            bool nameUnique = await CheckIfNameUniqueAsync(newName, cancellationToken);
+            if (!nameUnique)
             {
                 return UpdateFavoriteResult.NameExists;
             }
@@ -146,13 +146,13 @@ public sealed class CurrencyPublicRepository
 
     private async Task<bool> CheckIfNameUniqueAsync(string name, CancellationToken cancellationToken)
     {
-        FavoriteExchangeRateEntity? existing = await _context.FavoriteExchangeRates.FindAsync(name, cancellationToken);
+        FavoriteExchangeRateEntity? existing = await GetFavoriteByNameAsync(name, cancellationToken);
 
         return existing is null;
     }
 }
 
-public enum UpdateFavoriteResult
+internal enum UpdateFavoriteResult
 {
     Success,
     NotFound,
