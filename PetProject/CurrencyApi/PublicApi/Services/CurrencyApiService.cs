@@ -4,7 +4,6 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 

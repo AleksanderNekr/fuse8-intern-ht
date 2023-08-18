@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
@@ -164,5 +165,52 @@ public class CurrencyApiController : ControllerBase
         SettingsInfo settings = await _service.GetSettingsAsync(stopToken);
 
         return settings;
+    }
+
+    /// <summary>
+    /// Изменение валюты по умолчанию.
+    /// </summary>
+    /// <param name="newCurrency">Новая валюта.</param>
+    /// <param name="stopToken">Токен отмены операции.</param>
+    /// <response code="200">
+    ///     Возвращает, если удалось обновить валюту.
+    /// </response>
+    /// <response code="400">
+    ///     Возвращает, если не удалось обновить валюту.
+    /// </response>
+    /// <returns>Результат действия: <see cref="OkResult"/> – валюта обновлена, <see cref="BadRequestResult"/> – не удалось изменить валюту.</returns>
+    [HttpPut("settings/change_default_currency")]
+    public async Task<IActionResult> UpdateDefaultCurrency(CurrencyType newCurrency, CancellationToken stopToken)
+    {
+        bool updated = await _repository.TryUpdateDefaultCurrencyAsync(newCurrency, stopToken);
+
+        return updated
+                   ? Ok()
+                   : BadRequest("Can't change default currency");
+    }
+
+    /// <summary>
+    /// Изменение количества знаков после запятой для округления.
+    /// </summary>
+    /// <param name="newDecimalPlace">Новое количество знаков после запятой – поддерживаются ограниченные значения.</param>
+    /// <param name="stopToken">Токен отмены операции.</param>
+    /// <response code="200">
+    ///     Возвращает, если удалось обновить количество знаков.
+    /// </response>
+    /// <response code="400">
+    ///     Возвращает, если не удалось обновить количество знаков.
+    /// </response>
+    /// <returns>Результат действия: <see cref="OkResult"/> – количество знаков обновлено, <see cref="BadRequestResult"/> – не удалось изменить количество знаков.</returns>
+    [HttpPut("settings/change_currency_round_count")]
+    public async Task<IActionResult> UpdateDecimalPlace(
+        [Range(CurrenciesSettings.MinimumDecimalPlace, CurrenciesSettings.MaximumDecimalPlace)]
+        int newDecimalPlace,
+        CancellationToken stopToken)
+    {
+        bool updated = await _repository.TryUpdateCurrencyRoundCountAsync(newDecimalPlace, stopToken);
+
+        return updated
+                   ? Ok()
+                   : BadRequest("Can't change currency round count");
     }
 }
