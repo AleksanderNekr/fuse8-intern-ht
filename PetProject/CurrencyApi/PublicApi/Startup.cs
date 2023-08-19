@@ -48,7 +48,9 @@ public sealed class Startup
                                                                                     HistoryRepository.DefaultTableName,
                                                                                     CurrencyApiConstants.SchemaName);
                                                                            });
-                                                         builder.LogTo(Log.Debug);
+                                                         builder.LogTo(Log.Debug,
+                                                                       new[] { DbLoggerCategory.Database.Command.Name },
+                                                                       LogLevel.Information);
                                                          builder.EnableSensitiveDataLogging();
                                                      });
 
