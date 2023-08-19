@@ -4,6 +4,7 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
 
@@ -14,19 +15,21 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
 [ApiController]
 public class CurrencyApiController : ControllerBase
 {
-    private readonly ICurrencyApiService      _service;
-    private readonly CurrencyPublicRepository _repository;
+    private readonly ICurrencyApiService   _service;
+    private readonly CurrencyPublicContext _context;
+
+    private const int ExpectedSettingsRowsChanged = 1;
 
     /// <summary>
     ///     Инициализация контроллера курсов валют.
     /// </summary>
     /// <param name="service"><see cref="ICurrencyApiService" /> сервис получения информации от CurrencyApi.</param>
-    /// <param name="repository">Контекст базы данных.</param>
-    public CurrencyApiController(ICurrencyApiService      service,
-                                 CurrencyPublicRepository repository)
+    /// <param name="context">Контекст базы данных.</param>
+    public CurrencyApiController(ICurrencyApiService   service,
+                                 CurrencyPublicContext context)
     {
-        _service    = service;
-        _repository = repository;
+        _service = service;
+        _context = context;
     }
 
     /// <summary>
@@ -53,7 +56,7 @@ public class CurrencyApiController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CurrencyInfo>> GetDefaultCurrency(CancellationToken stopToken)
     {
-        CurrenciesSettings settings = await _repository.GetSettingsAsync(stopToken);
+        CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
         return await _service.GetCurrencyInfoAsync(Enum.Parse<CurrencyType>(settings.DefaultCurrency, ignoreCase: true),
                                                    settings.DecimalPlace,
@@ -88,7 +91,7 @@ public class CurrencyApiController : ControllerBase
     [HttpGet("{currencyCode}")]
     public async Task<ActionResult<CurrencyInfo>> GetCurrency(CurrencyType currencyCode, CancellationToken stopToken)
     {
-        CurrenciesSettings settings = await _repository.GetSettingsAsync(stopToken);
+        CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
         return await _service.GetCurrencyInfoAsync(currencyCode,
                                                    settings.DecimalPlace,
@@ -128,7 +131,7 @@ public class CurrencyApiController : ControllerBase
                                                                     DateOnly          date,
                                                                     CancellationToken stopToken)
     {
-        CurrenciesSettings settings = await _repository.GetSettingsAsync(stopToken);
+        CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
         return await _service.GetCurrencyInfoOnDateAsync(currencyCode,
                                                          settings.DecimalPlace,
@@ -182,7 +185,12 @@ public class CurrencyApiController : ControllerBase
     [HttpPut("settings/change_default_currency")]
     public async Task<IActionResult> UpdateDefaultCurrency(CurrencyType newCurrency, CancellationToken stopToken)
     {
-        bool updated = await _repository.TryUpdateDefaultCurrencyAsync(newCurrency, stopToken);
+        int rowsChanged = await _context.Settings.ExecuteUpdateAsync(calls => calls.SetProperty(
+                                                                          static settings => settings.DefaultCurrency,
+                                                                          newCurrency.ToString()),
+                                                                     stopToken);
+
+        bool updated = rowsChanged == ExpectedSettingsRowsChanged;
 
         return updated
                    ? Ok()
@@ -207,7 +215,12 @@ public class CurrencyApiController : ControllerBase
         int newDecimalPlace,
         CancellationToken stopToken)
     {
-        bool updated = await _repository.TryUpdateCurrencyRoundCountAsync(newDecimalPlace, stopToken);
+        int rowsChanged = await _context.Settings.ExecuteUpdateAsync(calls => calls.SetProperty(
+                                                                          static settings => settings.DecimalPlace,
+                                                                          newDecimalPlace),
+                                                                     stopToken);
+
+        bool updated = rowsChanged == ExpectedSettingsRowsChanged;
 
         return updated
                    ? Ok()

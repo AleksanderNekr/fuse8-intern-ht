@@ -4,6 +4,7 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 
@@ -11,13 +12,13 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
 public sealed class CurrencyApiService : ICurrencyApiService
 {
     private readonly CurrencyApiGrpc.CurrencyApiGrpcClient _grpcClient;
-    private readonly CurrencyPublicRepository              _repository;
+    private readonly CurrencyPublicContext                 _context;
 
     public CurrencyApiService(CurrencyApiGrpc.CurrencyApiGrpcClient grpcClient,
-                              CurrencyPublicRepository              repository)
+                              CurrencyPublicContext                 context)
     {
         _grpcClient = grpcClient;
-        _repository = repository;
+        _context    = context;
     }
 
     /// <inheritdoc />
@@ -71,7 +72,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
         SettingsResponse response = await _grpcClient.GetSettingsAsync(new Empty(),
                                                                        new CallOptions(cancellationToken: stopToken));
 
-        CurrenciesSettings settings = await _repository.GetSettingsAsync(stopToken);
+        CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
         return new SettingsInfo
                {

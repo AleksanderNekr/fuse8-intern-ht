@@ -15,7 +15,7 @@ using Serilog;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi;
 
-public class Startup
+public sealed class Startup
 {
     private readonly IConfiguration _configuration;
 
@@ -88,7 +88,6 @@ public class Startup
                 .AddAuditHandler(static configurator => configurator.IncludeRequestBody());
 
         services.AddTransient<ICurrencyApiService, CurrencyApiService>();
-        services.AddScoped<CurrencyPublicRepository>();
 
         return;
 
