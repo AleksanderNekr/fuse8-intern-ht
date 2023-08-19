@@ -73,12 +73,13 @@ public sealed class DbCachedCurrencyApi : ICachedCurrencyAPI
             return currenciesOnDate.Currencies.Single(currency => currency.Code == currencyType);
         }
 
+        CurrencyInfoEntity relevantInfo = info.Currencies.Single(entity => entity.Code == currencyType);
         var currencyInfo = new CurrencyInfo
                            {
-                               Code  = currencyType,
-                               Value = info.Currencies.Single(entity => entity.Code == currencyType).Value
+                               Code  = relevantInfo.Code,
+                               Value = relevantInfo.Value
                            };
-        _logger.LogDebug("Found relevant info in cache {@Model}", currencyInfo);
+        _logger.LogDebug("Found relevant info at {Date} in cache {@Model}", relevantInfo.UpdatedAt, currencyInfo);
 
         return currencyInfo;
     }
