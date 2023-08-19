@@ -16,11 +16,27 @@ internal class ExceptionFilter : IExceptionFilter
     {
         Exception exception = context.Exception;
 
-        _logger.LogError(exception, "Unknown exception");
-        context.Result = new ObjectResult(exception.Message)
-                         {
-                             StatusCode = 500,
-                         };
+        switch (exception)
+        {
+            case InvalidFavoriteNameException:
+                _logger.LogError("Invalid favorite name");
+                context.Result = new NotFoundResult();
+
+                break;
+            case OperationCanceledException:
+                _logger.LogInformation("Operation was canceled");
+                context.Result = new NoContentResult();
+
+                break;
+            default:
+                _logger.LogError(exception, "Unknown exception");
+                context.Result = new ObjectResult(exception.Message)
+                                 {
+                                     StatusCode = 500,
+                                 };
+
+                break;
+        }
 
         context.ExceptionHandled = true;
     }

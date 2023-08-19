@@ -93,9 +93,7 @@ public class CurrencyApiController : ControllerBase
     {
         CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
-        return await _service.GetCurrencyInfoAsync(currencyCode,
-                                                   settings.DecimalPlace,
-                                                   stopToken);
+        return await _service.GetCurrencyInfoAsync(currencyCode, settings.DecimalPlace, stopToken);
     }
 
 
@@ -133,10 +131,7 @@ public class CurrencyApiController : ControllerBase
     {
         CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
-        return await _service.GetCurrencyInfoOnDateAsync(currencyCode,
-                                                         settings.DecimalPlace,
-                                                         date,
-                                                         stopToken);
+        return await _service.GetCurrencyInfoOnDateAsync(currencyCode, settings.DecimalPlace, date, stopToken);
     }
 
     /// <summary>
