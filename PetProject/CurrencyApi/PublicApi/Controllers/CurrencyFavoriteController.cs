@@ -142,7 +142,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
 
             _logger.LogInformation("Added new favorite {Favorite}", favorite.ToJson());
 
-            return Ok();
+            return Ok(favorite);
         }
 
         /// <summary>
@@ -186,11 +186,11 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                 return NotFound($"Favorite with name {name} not found");
             }
 
-            if (NoChanges())
             _logger.LogTrace("Received favorite from DB: {Favorite}", found.ToJson());
 
+            if (!ChangesDetected())
             {
-                return Ok("No changes provided");
+                return Ok(found);
             }
 
             if (NameChanged())
@@ -208,7 +208,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                     _context.Update(found);
                     await _context.SaveChangesAsync(cancellationToken);
 
-                    return Ok("Only name was updated");
+                    return Ok(found);
                 }
             }
 
@@ -242,11 +242,17 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Favorite updated {Favorite}", found.ToJson());
 
-            return Ok();
+            return Ok(found);
 
-            bool NoChanges()
+            bool ChangesDetected()
             {
-                return !(NameChanged() || CurrencyChanged() || BaseCurrencyChanged());
+                bool changed = NameChanged() || CurrencyChanged() || BaseCurrencyChanged();
+                if (!changed)
+                {
+                    _logger.LogDebug("No changes found");
+                }
+
+                return changed;
             }
 
             bool OnlyNameProvided()
