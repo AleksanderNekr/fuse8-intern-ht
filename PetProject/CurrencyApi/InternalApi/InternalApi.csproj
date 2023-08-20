@@ -41,8 +41,31 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Protobuf Include="Services\Grpc\Protos\currency_api.proto">
-        <Generator>MSBuild:Compile</Generator>
-      </Protobuf>
+        <Protobuf Include="Services\Grpc\Protos\currency_api.proto">
+            <ProtoRoot>Services\Grpc\Protos</ProtoRoot>
+            <Generator>MSBuild:Compile</Generator>
+            <OutputDir>obj\Debug\net7.0\</OutputDir>
+            <CompileOutputs>True</CompileOutputs>
+            <ProtoCompile>True</ProtoCompile>
+            <Access>Public</Access>
+            <GrpcServices>Server</GrpcServices>
+            <Link>Services\Grpc\Protos\currency_api.proto</Link>
+        </Protobuf>
+        <Protobuf Include="Services\Grpc\Protos\decimal.proto">
+            <GrpcServices>Server</GrpcServices>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug\net7.0\</OutputDir>
+            <ProtoRoot>Services/Grpc/Protos</ProtoRoot>
+        </Protobuf>
+        <Protobuf Include="Services\Grpc\Protos\currency_code.proto">
+            <GrpcServices>Server</GrpcServices>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug\net7.0\</OutputDir>
+            <ProtoRoot>Services/Grpc/Protos</ProtoRoot>
+        </Protobuf>
     </ItemGroup>
 </Project>
