@@ -298,6 +298,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
             _ = found ?? throw new InvalidFavoriteNameException($"Favorite with name {name} not found");
+            Task<CurrenciesSettings> getSettingsTask = _context.Settings.SingleAsync(cancellationToken);
 
             CurrencyFavoriteRequest request = new()
                                               {
@@ -306,7 +307,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                                               };
             CurrencyResponse response =
                 await _grpcService.GetCurrentFavoriteCurrencyAsync(request, cancellationToken: cancellationToken);
-            CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken);
+            CurrenciesSettings settings = await getSettingsTask;
             CurrencyInfo info = new()
                                 {
                                     Code  = found.Currency,
@@ -339,6 +340,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
             _ = found ?? throw new InvalidFavoriteNameException($"Favorite with name {name} not found");
+            Task<CurrenciesSettings> getSettingsTask = _context.Settings.SingleAsync(cancellationToken);
 
             CurrencyOnDateFavoriteRequest request = new()
                                                     {
@@ -349,7 +351,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                                                     };
             CurrencyResponse response =
                 await _grpcService.GetFavoriteCurrencyOnDateAsync(request, cancellationToken: cancellationToken);
-            CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken);
+            CurrenciesSettings settings = await getSettingsTask;
             CurrencyOnDateInfo info = new()
                                       {
                                           Code  = found.Currency,
