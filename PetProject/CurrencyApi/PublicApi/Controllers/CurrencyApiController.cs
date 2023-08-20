@@ -15,8 +15,9 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers;
 [ApiController]
 public class CurrencyApiController : ControllerBase
 {
-    private readonly ICurrencyApiService   _service;
-    private readonly CurrencyPublicContext _context;
+    private readonly ICurrencyApiService            _service;
+    private readonly CurrencyPublicContext          _context;
+    private readonly ILogger<CurrencyApiController> _logger;
 
     private const int ExpectedSettingsRowsChanged = 1;
 
@@ -25,11 +26,14 @@ public class CurrencyApiController : ControllerBase
     /// </summary>
     /// <param name="service"><see cref="ICurrencyApiService" /> сервис получения информации от CurrencyApi.</param>
     /// <param name="context">Контекст базы данных.</param>
-    public CurrencyApiController(ICurrencyApiService   service,
-                                 CurrencyPublicContext context)
+    /// <param name="logger">Логгер событий.</param>
+    public CurrencyApiController(ICurrencyApiService            service,
+                                 CurrencyPublicContext          context,
+                                 ILogger<CurrencyApiController> logger)
     {
         _service = service;
         _context = context;
+        _logger  = logger;
     }
 
     /// <summary>
@@ -56,7 +60,9 @@ public class CurrencyApiController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<CurrencyInfo>> GetDefaultCurrency(CancellationToken stopToken)
     {
+        _logger.LogTrace("Executed GET default currency method");
         CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
+        _logger.LogTrace("Received settings: {Settings}", settings);
 
         return await _service.GetCurrencyInfoAsync(Enum.Parse<CurrencyType>(settings.DefaultCurrency, ignoreCase: true),
                                                    settings.DecimalPlace,
@@ -91,7 +97,9 @@ public class CurrencyApiController : ControllerBase
     [HttpGet("{currencyCode}")]
     public async Task<ActionResult<CurrencyInfo>> GetCurrency(CurrencyType currencyCode, CancellationToken stopToken)
     {
+        _logger.LogTrace("Executed GET currency method");
         CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
+        _logger.LogTrace("Received settings: {Settings}", settings);
 
         return await _service.GetCurrencyInfoAsync(currencyCode, settings.DecimalPlace, stopToken);
     }
@@ -129,7 +137,9 @@ public class CurrencyApiController : ControllerBase
                                                                     DateOnly          date,
                                                                     CancellationToken stopToken)
     {
+        _logger.LogTrace("Executed GET currency on date method");
         CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
+        _logger.LogTrace("Received settings: {Settings}", settings);
 
         return await _service.GetCurrencyInfoOnDateAsync(currencyCode, settings.DecimalPlace, date, stopToken);
     }
@@ -160,7 +170,9 @@ public class CurrencyApiController : ControllerBase
     [HttpGet("settings")]
     public async Task<ActionResult<SettingsInfo>> GetSettingsInfo(CancellationToken stopToken)
     {
+        _logger.LogTrace("Executed GET settings method");
         SettingsInfo settings = await _service.GetSettingsAsync(stopToken);
+        _logger.LogTrace("Received settings: {Settings}", settings);
 
         return settings;
     }
@@ -180,6 +192,7 @@ public class CurrencyApiController : ControllerBase
     [HttpPut("settings/change_default_currency")]
     public async Task<IActionResult> UpdateDefaultCurrency(CurrencyType newCurrency, CancellationToken stopToken)
     {
+        _logger.LogTrace("Executed PUT default currency in settings method");
         int rowsChanged = await _context.Settings.ExecuteUpdateAsync(calls => calls.SetProperty(
                                                                           static settings => settings.DefaultCurrency,
                                                                           newCurrency.ToString()),
@@ -187,9 +200,16 @@ public class CurrencyApiController : ControllerBase
 
         bool updated = rowsChanged == ExpectedSettingsRowsChanged;
 
-        return updated
-                   ? Ok()
-                   : BadRequest("Can't change default currency");
+        if (updated)
+        {
+            _logger.LogInformation("Default currency updated to {New}", newCurrency);
+
+            return Ok();
+        }
+
+        _logger.LogError("Bad request: can't change default currency. Rows changed: {RowsChanged}", rowsChanged);
+
+        return BadRequest("Can't change default currency");
     }
 
     /// <summary>
@@ -210,15 +230,23 @@ public class CurrencyApiController : ControllerBase
         int newDecimalPlace,
         CancellationToken stopToken)
     {
+        _logger.LogTrace("Executed PUT currency round count in settings method");
         int rowsChanged = await _context.Settings.ExecuteUpdateAsync(calls => calls.SetProperty(
-                                                                          static settings => settings.DecimalPlace,
-                                                                          newDecimalPlace),
+                                                                      static settings => settings.DecimalPlace,
+                                                                      newDecimalPlace),
                                                                      stopToken);
 
         bool updated = rowsChanged == ExpectedSettingsRowsChanged;
 
-        return updated
-                   ? Ok()
-                   : BadRequest("Can't change currency round count");
+        if (updated)
+        {
+            _logger.LogInformation("Currency round count updated to {New}", newDecimalPlace);
+
+            return Ok();
+        }
+
+        _logger.LogError("Bad request: can't change currency round count. Rows changed: {RowsChanged}", rowsChanged);
+
+        return BadRequest("Can't change currency round count");
     }
 }

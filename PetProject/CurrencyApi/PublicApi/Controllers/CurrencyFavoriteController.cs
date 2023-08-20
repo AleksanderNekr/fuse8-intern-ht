@@ -6,6 +6,7 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
 {
@@ -44,8 +45,10 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
         public Task<ActionResult<IEnumerable<FavoriteExchangeRateEntity>>> GetAllFavoritesAsync(
             CancellationToken cancellationToken)
         {
+            _logger.LogTrace("Executed GET all favorites");
             IEnumerable<FavoriteExchangeRateEntity> favorites = _context.FavoriteExchangeRates.AsEnumerable();
             cancellationToken.ThrowIfCancellationRequested();
+            _logger.LogTrace("Received favorites from DB: {Favorite}", favorites.ToJson());
 
             return Task.FromResult(new ActionResult<IEnumerable<FavoriteExchangeRateEntity>>(favorites));
         }
@@ -67,9 +70,11 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
         public async Task<ActionResult<FavoriteExchangeRateEntity>> GetByNameAsync(
             string name, CancellationToken cancellationToken)
         {
+            _logger.LogTrace("Executed GET favorite");
             FavoriteExchangeRateEntity? favorite =
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
+            _logger.LogTrace("Received favorite from DB: {Favorite}", favorite.ToJson());
 
             return favorite
                 ?? throw new InvalidFavoriteNameException("Can't find favorite for this name: " + name);
@@ -99,21 +104,31 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                                                            [FromQuery] CurrencyType baseCurrency,
                                                            CancellationToken        cancellationToken)
         {
-            _logger.LogDebug("Executed POST new favorite");
+            _logger.LogTrace("Executed POST new favorite");
             bool nameTaken = await CheckIfNameTakenAsync(name, cancellationToken);
             if (nameTaken)
             {
+                _logger.LogInformation("Conflict: Favorite with name ({Name}) already exists", name);
+
                 return Conflict($"Favorite with name ({name}) already exists");
             }
 
+            _logger.LogTrace("Name {Name} – unique", name);
+
             bool currenciesPairExists = await _context.FavoriteExchangeRates.AnyAsync(entity =>
-                                                         entity.Currency     == currency
-                                                      && entity.BaseCurrency == baseCurrency,
-                                                 cancellationToken);
+                                                entity.Currency     == currency
+                                             && entity.BaseCurrency == baseCurrency,
+                                            cancellationToken);
             if (currenciesPairExists)
             {
+                _logger.LogInformation("Conflict: Favorite with currency {Currency} and base currency {BaseCurrency} already exists",
+                                       currency,
+                                       baseCurrency);
+
                 return Conflict($"Favorite with currency {currency} and base currency {baseCurrency} already exists");
             }
+
+            _logger.LogTrace("Pair {Currency}|{BaseCurrency} – unique", currency, baseCurrency);
 
             FavoriteExchangeRateEntity favorite = new()
                                                   {
@@ -125,7 +140,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
             await _context.FavoriteExchangeRates.AddAsync(favorite, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Saved new favorite {@Fav}", favorite);
+            _logger.LogInformation("Added new favorite {Favorite}", favorite.ToJson());
 
             return Ok();
         }
@@ -159,15 +174,21 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                                                              [FromQuery] CurrencyType? newCurrency     = null,
                                                              [FromQuery] CurrencyType? newBaseCurrency = null)
         {
+            _logger.LogTrace("Executed PUT favorite");
             FavoriteExchangeRateEntity? found =
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
+
             if (found is null)
             {
+                _logger.LogWarning("Favorite with name {Name} not found", name);
+
                 return NotFound($"Favorite with name {name} not found");
             }
 
             if (NoChanges())
+            _logger.LogTrace("Received favorite from DB: {Favorite}", found.ToJson());
+
             {
                 return Ok("No changes provided");
             }
@@ -181,7 +202,6 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
                 }
 
                 found.Name = newName!;
-                _logger.LogDebug("Name updated");
 
                 if (OnlyNameProvided())
                 {
@@ -195,22 +215,24 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
             if (CurrencyChanged())
             {
                 found.Currency = newCurrency!.Value;
-                _logger.LogDebug("Currency updated");
             }
 
             if (BaseCurrencyChanged())
             {
                 found.BaseCurrency = newBaseCurrency!.Value;
-                _logger.LogDebug("Base currency updated");
             }
 
             bool anotherPairFound = await _context.FavoriteExchangeRates.AnyAsync(entity =>
-                                                     entity.Currency     == found.Currency
-                                                  && entity.BaseCurrency == found.BaseCurrency
-                                                  && entity.Name         != found.Name,
-                                             cancellationToken);
+                                            entity.Currency     == found.Currency
+                                         && entity.BaseCurrency == found.BaseCurrency
+                                         && entity.Name         != found.Name,
+                                        cancellationToken);
             if (anotherPairFound)
             {
+                _logger.LogInformation("Favorite with new currency {Currency} and base currency {BaseCurrency} already exists",
+                                       found.Currency,
+                                       found.BaseCurrency);
+
                 return Conflict($"Favorite with new currency {found.Currency}"
                               + $" and base currency {found.BaseCurrency} already exists");
             }
@@ -218,7 +240,7 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
 
             _context.Update(found);
             await _context.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Favorite updated {@Fav}", found);
+            _logger.LogInformation("Favorite updated {Favorite}", found.ToJson());
 
             return Ok();
 
@@ -229,22 +251,66 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
 
             bool OnlyNameProvided()
             {
-                return newName is not null && newCurrency is null && newBaseCurrency is null;
+                bool nameOnly = newName is not null && newCurrency is null && newBaseCurrency is null;
+                if (nameOnly)
+                {
+                    _logger.LogInformation("Only name {Name} provided to update", newName);
+                }
+                else
+                {
+                    _logger.LogTrace("Not only name provided");
+                }
+
+                return nameOnly;
             }
 
             bool NameChanged()
             {
-                return newName is not null && found.Name != newName;
+                bool changed = newName is not null && found.Name != newName;
+                if (changed)
+                {
+                    _logger.LogTrace("New name {NewName} differs to old: {OldName}", newName, found.Name);
+                }
+                else
+                {
+                    _logger.LogTrace("New name didn't change");
+                }
+
+                return changed;
             }
 
             bool CurrencyChanged()
             {
-                return newCurrency is not null && newCurrency != found.Currency;
+                bool changed = newCurrency is not null && newCurrency != found.Currency;
+                if (changed)
+                {
+                    _logger.LogTrace("New currency {NewCurrency} differs to old: {OldCurrency}",
+                                     newCurrency,
+                                     found.Currency);
+                }
+                else
+                {
+                    _logger.LogTrace("New currency didn't change");
+                }
+
+                return changed;
             }
 
             bool BaseCurrencyChanged()
             {
-                return newBaseCurrency is not null && newBaseCurrency != found.BaseCurrency;
+                bool changed = newBaseCurrency is not null && newBaseCurrency != found.BaseCurrency;
+                if (changed)
+                {
+                    _logger.LogTrace("New base currency {NewBaseCurrency} differs to old: {OldBaseCurrency}",
+                                     newBaseCurrency,
+                                     found.Currency);
+                }
+                else
+                {
+                    _logger.LogTrace("New base currency didn't change");
+                }
+
+                return changed;
             }
         }
 
@@ -264,16 +330,24 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
         [HttpDelete("{name}")]
         public async Task<IActionResult> DeleteFavoriteAsync(string name, CancellationToken cancellationToken)
         {
+            _logger.LogTrace("Executed DELETE favorite");
             FavoriteExchangeRateEntity? found =
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
             if (found is null)
             {
+                _logger.LogInformation("Favorite with name {Name} not found", name);
+
                 return NotFound($"Favorite with name {name} not found");
             }
 
+            string jsonFound = found.ToJson();
+            _logger.LogTrace("Received favorite from DB: {Favorite}", jsonFound);
+
             _context.FavoriteExchangeRates.Remove(found);
             await _context.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Favorite {Favorite} deleted", jsonFound);
 
             return Ok();
         }
@@ -292,27 +366,37 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
         ///     Возвращает, если не удалось найти избранное.
         /// </response>
         [HttpGet("current/{name}")]
-        public async Task<CurrencyInfo> GetCurrentFavoriteAsync(string name, CancellationToken cancellationToken)
+        public async Task<ActionResult<CurrencyInfo>> GetCurrentFavoriteAsync(
+            string name, CancellationToken cancellationToken)
         {
+            _logger.LogTrace("Executed GET favorite currency info");
             FavoriteExchangeRateEntity? found =
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
             _ = found ?? throw new InvalidFavoriteNameException($"Favorite with name {name} not found");
+            _logger.LogTrace("Received favorite from DB: {Favorite}", found.ToJson());
+
             Task<CurrenciesSettings> getSettingsTask = _context.Settings.SingleAsync(cancellationToken);
+            _logger.LogTrace("Executed get settings task");
 
             CurrencyFavoriteRequest request = new()
                                               {
                                                   FavoriteCurrency     = (CurrencyCode)found.Currency,
                                                   FavoriteBaseCurrency = (CurrencyCode)found.BaseCurrency
                                               };
+            _logger.LogTrace("Sent request: {Request}", request);
             CurrencyResponse response =
                 await _grpcService.GetCurrentFavoriteCurrencyAsync(request, cancellationToken: cancellationToken);
+
             CurrenciesSettings settings = await getSettingsTask;
+            _logger.LogTrace("Received settings: {Settings}", settings);
+
             CurrencyInfo info = new()
                                 {
                                     Code  = found.Currency,
                                     Value = Math.Round(response.Value, settings.DecimalPlace)
                                 };
+            _logger.LogTrace("Sent currency info: {Info}", info);
 
             return info;
         }
@@ -332,39 +416,59 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
         ///     Возвращает, если не удалось найти избранное.
         /// </response>
         [HttpGet("historical/{name}")]
-        public async Task<CurrencyOnDateInfo> GetFavoriteOnDateAsync(string               name,
-                                                                     [FromQuery] DateOnly date,
-                                                                     CancellationToken    cancellationToken)
+        public async Task<ActionResult<CurrencyOnDateInfo>> GetFavoriteOnDateAsync(
+            string               name,
+            [FromQuery] DateOnly date,
+            CancellationToken    cancellationToken)
         {
+            _logger.LogTrace("Executed GET favorite currency on date info");
             FavoriteExchangeRateEntity? found =
                 await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
                                                                           cancellationToken);
             _ = found ?? throw new InvalidFavoriteNameException($"Favorite with name {name} not found");
+            _logger.LogTrace("Received favorite from DB: {Favorite}", found.ToJson());
+
             Task<CurrenciesSettings> getSettingsTask = _context.Settings.SingleAsync(cancellationToken);
+            _logger.LogTrace("Executed get settings task");
 
             CurrencyOnDateFavoriteRequest request = new()
                                                     {
                                                         FavoriteCurrency     = (CurrencyCode)found.Currency,
                                                         FavoriteBaseCurrency = (CurrencyCode)found.BaseCurrency,
                                                         Date = Timestamp.FromDateTime(
-                                                             date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc))
+                                                         date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc))
                                                     };
+            _logger.LogTrace("Sent request: {Request}", request);
             CurrencyResponse response =
                 await _grpcService.GetFavoriteCurrencyOnDateAsync(request, cancellationToken: cancellationToken);
+
             CurrenciesSettings settings = await getSettingsTask;
+            _logger.LogTrace("Received settings: {Settings}", settings);
+
             CurrencyOnDateInfo info = new()
                                       {
                                           Code  = found.Currency,
                                           Value = Math.Round(response.Value, settings.DecimalPlace),
                                           Date  = date
                                       };
+            _logger.LogTrace("Sent currency info: {Info}", info);
 
             return info;
         }
 
-        private Task<bool> CheckIfNameTakenAsync(string name, CancellationToken cancellationToken)
+        private async Task<bool> CheckIfNameTakenAsync(string name, CancellationToken cancellationToken)
         {
-            return _context.FavoriteExchangeRates.AnyAsync(entity => entity.Name == name, cancellationToken);
+            bool taken = await _context.FavoriteExchangeRates.AnyAsync(entity => entity.Name == name, cancellationToken);
+            if (taken)
+            {
+                _logger.LogWarning("Favorite with name {Name} already exists", name);
+            }
+            else
+            {
+                _logger.LogTrace("Name {Name} – unique", name);
+            }
+
+            return taken;
         }
     }
 }
