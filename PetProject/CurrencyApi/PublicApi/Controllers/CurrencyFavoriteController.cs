@@ -1,6 +1,9 @@
+using Fuse8_ByteMinds.SummerSchool.Grpc;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Data.Entities;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Models;
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Models.Settings;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +16,17 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
     [ApiController]
     public class CurrencyFavoriteController : ControllerBase
     {
-        private readonly CurrencyPublicContext               _context;
-        private readonly ILogger<CurrencyFavoriteController> _logger;
+        private readonly CurrencyPublicContext                 _context;
+        private readonly ILogger<CurrencyFavoriteController>   _logger;
+        private readonly CurrencyApiGrpc.CurrencyApiGrpcClient _grpcService;
 
-        public CurrencyFavoriteController(CurrencyPublicContext context, ILogger<CurrencyFavoriteController> logger)
+        public CurrencyFavoriteController(CurrencyPublicContext                 context,
+                                          ILogger<CurrencyFavoriteController>   logger,
+                                          CurrencyApiGrpc.CurrencyApiGrpcClient grpcService)
         {
-            _context = context;
-            _logger  = logger;
+            _context     = context;
+            _logger      = logger;
+            _grpcService = grpcService;
         }
 
         /// <summary>
@@ -269,6 +276,88 @@ namespace Fuse8_ByteMinds.SummerSchool.PublicApi.Controllers
             await _context.SaveChangesAsync(cancellationToken);
 
             return Ok();
+        }
+
+        /// <summary>
+        /// Получение текущего значения избранного курса валют.
+        /// </summary>
+        /// <param name="name">Название избранного курса валют.</param>
+        /// <param name="cancellationToken">Токен отмены операции.</param>
+        /// <returns>Модель информации о курсе валюты.</returns>
+        /// <exception cref="InvalidFavoriteNameException">Возникает, если избранное с приведенным именем не найдено.</exception>
+        /// <response code="200">
+        ///     Возвращает, если удалось получить значение избранного курса валют.
+        /// </response>
+        /// <response code="404">
+        ///     Возвращает, если не удалось найти избранное.
+        /// </response>
+        [HttpGet("current/{name}")]
+        public async Task<CurrencyInfo> GetCurrentFavoriteAsync(string name, CancellationToken cancellationToken)
+        {
+            FavoriteExchangeRateEntity? found =
+                await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
+                                                                          cancellationToken);
+            _ = found ?? throw new InvalidFavoriteNameException($"Favorite with name {name} not found");
+
+            CurrencyFavoriteRequest request = new()
+                                              {
+                                                  FavoriteCurrency     = (CurrencyCode)found.Currency,
+                                                  FavoriteBaseCurrency = (CurrencyCode)found.BaseCurrency
+                                              };
+            CurrencyResponse response =
+                await _grpcService.GetCurrentFavoriteCurrencyAsync(request, cancellationToken: cancellationToken);
+            CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken);
+            CurrencyInfo info = new()
+                                {
+                                    Code  = found.Currency,
+                                    Value = Math.Round(response.Value, settings.DecimalPlace)
+                                };
+
+            return info;
+        }
+
+        /// <summary>
+        /// Получение значения избранного курса валют на определенную дату.
+        /// </summary>
+        /// <param name="name">Название избранного курса валют.</param>
+        /// <param name="date">Дата, на которую должен быть получен курс.</param>
+        /// <param name="cancellationToken">Токен отмены операции.</param>
+        /// <returns>Модель информации о курсе валюты.</returns>
+        /// <exception cref="InvalidFavoriteNameException">Возникает, если избранное с приведенным именем не найдено.</exception>
+        /// <response code="200">
+        ///     Возвращает, если удалось получить значение избранного курса валют.
+        /// </response>
+        /// <response code="404">
+        ///     Возвращает, если не удалось найти избранное.
+        /// </response>
+        [HttpGet("historical/{name}")]
+        public async Task<CurrencyOnDateInfo> GetFavoriteOnDateAsync(string               name,
+                                                                     [FromQuery] DateOnly date,
+                                                                     CancellationToken    cancellationToken)
+        {
+            FavoriteExchangeRateEntity? found =
+                await _context.FavoriteExchangeRates.SingleOrDefaultAsync(entity => entity.Name == name,
+                                                                          cancellationToken);
+            _ = found ?? throw new InvalidFavoriteNameException($"Favorite with name {name} not found");
+
+            CurrencyOnDateFavoriteRequest request = new()
+                                                    {
+                                                        FavoriteCurrency     = (CurrencyCode)found.Currency,
+                                                        FavoriteBaseCurrency = (CurrencyCode)found.BaseCurrency,
+                                                        Date = Timestamp.FromDateTime(
+                                                             date.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc))
+                                                    };
+            CurrencyResponse response =
+                await _grpcService.GetFavoriteCurrencyOnDateAsync(request, cancellationToken: cancellationToken);
+            CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken);
+            CurrencyOnDateInfo info = new()
+                                      {
+                                          Code  = found.Currency,
+                                          Value = Math.Round(response.Value, settings.DecimalPlace),
+                                          Date  = date
+                                      };
+
+            return info;
         }
 
         private Task<bool> CheckIfNameTakenAsync(string name, CancellationToken cancellationToken)

@@ -10,7 +10,6 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Db;
-using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Local;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
@@ -41,8 +40,8 @@ public class Startup
                                                                              {
                                                                                  optionsBuilder.EnableRetryOnFailure();
                                                                                  optionsBuilder.MigrationsHistoryTable(
-                                                                                      HistoryRepository.DefaultTableName,
-                                                                                      CurrencyApiConstants.SchemaName);
+                                                                                  HistoryRepository.DefaultTableName,
+                                                                                  CurrencyApiConstants.SchemaName);
                                                                              });
                                                        });
 

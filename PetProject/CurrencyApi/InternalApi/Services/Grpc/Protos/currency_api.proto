@@ -2,51 +2,62 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "decimal.proto";
+import "currency_code.proto";
 
 option csharp_namespace = "Fuse8_ByteMinds.SummerSchool.Grpc";
 
 package currency_api;
 
+// Provides methods for work with currency API.
 service CurrencyApiGrpc {
+  // Method to get current currency rate.
   rpc GetCurrentCurrency(CurrencyRequest) returns (CurrencyResponse);
 
+  // Method to get currency rate on specified date.
   rpc GetCurrencyOnDate(CurrencyOnDateRequest) returns (CurrencyResponse);
 
+  // Method to get app settings.
   rpc GetSettings(google.protobuf.Empty) returns (SettingsResponse);
+
+  // Get current currency for favorite rate.
+  rpc GetCurrentFavoriteCurrency(CurrencyFavoriteRequest) returns (CurrencyResponse);
+
+  // Get currency on date for favorite rate.
+  rpc GetFavoriteCurrencyOnDate(CurrencyOnDateFavoriteRequest) returns (CurrencyResponse);
 }
 
-enum CurrencyCode {
-  USD = 0;
-  RUB = 1;
-  KZT = 2;
-  EUR = 3;
+// Request contains currency and base currency.
+message CurrencyFavoriteRequest {
+  CurrencyCode favoriteCurrency = 1;
+  CurrencyCode favoriteBaseCurrency = 2;
 }
 
+// Request contains currency, base currency and date.
+message CurrencyOnDateFavoriteRequest {
+  CurrencyCode favoriteCurrency = 1;
+  CurrencyCode favoriteBaseCurrency = 2;
+  google.protobuf.Timestamp date = 3;
+}
+
+// Response contains DecimalValue – currency rate.
+message CurrencyResponse {
+  DecimalValue value = 1;
+}
+
+// Request contains currency.
 message CurrencyRequest {
   CurrencyCode code = 1;
 }
 
+// Request contains currency and date.
 message CurrencyOnDateRequest {
   CurrencyCode code = 1;
   google.protobuf.Timestamp date = 2;
 }
 
-message CurrencyResponse {
-  DecimalValue value = 1;
-}
-
+// Response contains configured base currency and external API requests availability.
 message SettingsResponse {
   string base_currency = 1;
   bool has_available_requests = 2;
-}
-
-// Example: 12345.6789 -> { units = 12345, nanos = 678900000 }
-message DecimalValue {
-
-  // Whole units part of the amount
-  int64 units = 1;
-
-  // Nano units of the amount (10^-9)
-  // Must be same sign as units
-  sfixed64 nanos = 2;
 }

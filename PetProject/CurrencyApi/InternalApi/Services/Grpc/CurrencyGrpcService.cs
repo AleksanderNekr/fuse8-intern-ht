@@ -33,8 +33,8 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
     public override async Task<CurrencyResponse> GetCurrentCurrency(CurrencyRequest request, ServerCallContext context)
     {
         CurrencyInfo currencyInfo = await _cachedCurrencyApi.GetCurrentCurrencyAsync(
-                                         (CurrencyType)request.Code,
-                                         context.CancellationToken);
+                                     (CurrencyType)request.Code,
+                                     context.CancellationToken);
         _logger.LogDebug("Received model from API: {Model}", currencyInfo);
 
         CurrencyResponse response = new()
@@ -50,9 +50,9 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
                                                                    ServerCallContext     context)
     {
         CurrencyInfo currencyInfo = await _cachedCurrencyApi.GetCurrencyOnDateAsync(
-                                         (CurrencyType)request.Code,
-                                         DateOnly.FromDateTime(request.Date.ToDateTime()),
-                                         context.CancellationToken);
+                                     (CurrencyType)request.Code,
+                                     DateOnly.FromDateTime(request.Date.ToDateTime()),
+                                     context.CancellationToken);
         _logger.LogDebug("Received model from API: {Model}", currencyInfo);
 
         CurrencyResponse response = new()
@@ -76,5 +76,60 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
                                     };
 
         return settings;
+    }
+
+    /// <inheritdoc />
+    public override async Task<CurrencyResponse> GetCurrentFavoriteCurrency(
+        CurrencyFavoriteRequest request, ServerCallContext context)
+    {
+        CurrencyInfo byFavorite =
+            await _cachedCurrencyApi.GetCurrentCurrencyAsync((CurrencyType)request.FavoriteCurrency,
+                                                             context.CancellationToken);
+        bool baseCurrenciesEqual = string.Equals(_settings.BaseCurrency,
+                                                 request.FavoriteBaseCurrency.ToString(),
+                                                 StringComparison.InvariantCultureIgnoreCase);
+        if (baseCurrenciesEqual)
+        {
+            _logger.LogDebug("Base currencies equal");
+
+            return new CurrencyResponse { Value = byFavorite.Value };
+        }
+
+        CurrencyInfo byFavoriteBase =
+            await _cachedCurrencyApi.GetCurrentCurrencyAsync((CurrencyType)request.FavoriteBaseCurrency,
+                                                             context.CancellationToken);
+
+        decimal value = byFavorite.Value / byFavoriteBase.Value;
+
+        return new CurrencyResponse { Value = value };
+    }
+
+    /// <inheritdoc />
+    public override async Task<CurrencyResponse> GetFavoriteCurrencyOnDate(CurrencyOnDateFavoriteRequest request,
+                                                                           ServerCallContext             context)
+    {
+        DateOnly date = DateOnly.FromDateTime(request.Date.ToDateTime());
+        CurrencyInfo byFavorite = await _cachedCurrencyApi.GetCurrencyOnDateAsync((CurrencyType)request.FavoriteCurrency,
+                                      date,
+                                      context.CancellationToken);
+
+        bool baseCurrenciesEqual = string.Equals(_settings.BaseCurrency,
+                                                 request.FavoriteBaseCurrency.ToString(),
+                                                 StringComparison.InvariantCultureIgnoreCase);
+        if (baseCurrenciesEqual)
+        {
+            _logger.LogDebug("Base currencies equal");
+
+            return new CurrencyResponse { Value = byFavorite.Value };
+        }
+
+        CurrencyInfo byFavoriteBase =
+            await _cachedCurrencyApi.GetCurrencyOnDateAsync((CurrencyType)request.FavoriteBaseCurrency,
+                                                            date,
+                                                            context.CancellationToken);
+
+        decimal value = byFavorite.Value / byFavoriteBase.Value;
+
+        return new CurrencyResponse { Value = value };
     }
 }
