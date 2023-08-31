@@ -25,6 +25,15 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers
         /// <param name="currencyCode">Код валюты.</param>
         /// <param name="stopToken">Токен отмены операции.</param>
         /// <returns>Модель <see cref="CurrencyInfo"/>.</returns>
+        /// <response code="200">
+        ///     Возвращает, если удалось получить курс валюты.
+        /// </response>
+        /// <response code="400">
+        ///     Возвращает, если не удалось получить курс валюты.
+        /// </response>
+        /// <response code="404">
+        ///     Возвращает, если валюта не найдена.
+        /// </response>
         [HttpGet("")]
         public async Task<ActionResult<CurrencyInfo>> GetCurrency(CurrencyType currencyCode, CancellationToken stopToken)
         {
@@ -40,6 +49,15 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers
         /// <param name="date">Дата курса валют.</param>
         /// <param name="stopToken">Токен отмены операции.</param>
         /// <returns>Модель <see cref="CurrencyInfo"/>.</returns>
+        /// <response code="200">
+        ///     Возвращает, если удалось получить курс валюты.
+        /// </response>
+        /// <response code="400">
+        ///     Возвращает, если не удалось получить курс валюты.
+        /// </response>
+        /// <response code="404">
+        ///     Возвращает, если валюта не найдена.
+        /// </response>
         [HttpGet("{date}")]
         public async Task<ActionResult<CurrencyInfo>> GetCurrencyOnDate(CurrencyType      currencyCode,
                                                                         DateOnly          date,

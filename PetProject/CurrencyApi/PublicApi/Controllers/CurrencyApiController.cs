@@ -204,7 +204,7 @@ public class CurrencyApiController : ControllerBase
         {
             _logger.LogInformation("Default currency updated to {New}", newCurrency);
 
-            return Ok();
+            return NoContent();
         }
 
         _logger.LogError("Bad request: can't change default currency. Rows changed: {RowsChanged}", rowsChanged);
@@ -242,7 +242,7 @@ public class CurrencyApiController : ControllerBase
         {
             _logger.LogInformation("Currency round count updated to {New}", newDecimalPlace);
 
-            return Ok();
+            return NoContent();
         }
 
         _logger.LogError("Bad request: can't change currency round count. Rows changed: {RowsChanged}", rowsChanged);
