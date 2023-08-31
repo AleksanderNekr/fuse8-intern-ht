@@ -1,6 +1,8 @@
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Data;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi;
 
@@ -25,6 +27,8 @@ internal sealed class Program
                                       })
                           .Build();
 
+        await ApplyMigrationsAsync(webHost);
+
         await webHost.RunAsync();
 
         return;
@@ -34,6 +38,18 @@ internal sealed class Program
             listenOptions.Protocols = listenOptions.IPEndPoint!.Port == grpcPort
                                           ? HttpProtocols.Http2
                                           : HttpProtocols.Http1;
+        }
+    }
+
+    private static async Task ApplyMigrationsAsync(IWebHost webHost)
+    {
+        using IServiceScope scope    = webHost.Services.CreateScope();
+        IServiceProvider    services = scope.ServiceProvider;
+
+        var context = services.GetRequiredService<CurrencyInternalContext>();
+        if ((await context.Database.GetPendingMigrationsAsync()).Any())
+        {
+            await context.Database.MigrateAsync();
         }
     }
 

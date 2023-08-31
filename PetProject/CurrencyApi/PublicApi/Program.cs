@@ -1,4 +1,6 @@
+using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Microsoft.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.PublicApi;
 
@@ -11,7 +13,21 @@ internal sealed class Program
                           .UseStartup<Startup>()
                           .Build();
 
+        await ApplyMigrationsAsync(webHost);
+
         await webHost.RunAsync();
+    }
+
+    private static async Task ApplyMigrationsAsync(IWebHost webHost)
+    {
+        using IServiceScope scope    = webHost.Services.CreateScope();
+        IServiceProvider    services = scope.ServiceProvider;
+
+        var context = services.GetRequiredService<CurrencyPublicContext>();
+        if ((await context.Database.GetPendingMigrationsAsync()).Any())
+        {
+            await context.Database.MigrateAsync();
+        }
     }
 
     // EF Core uses this method at design time to access the DbContext.
