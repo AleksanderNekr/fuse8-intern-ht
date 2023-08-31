@@ -1,0 +1,46 @@
+version: '3.9'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15.4
+    restart: unless-stopped
+    environment:
+      DATABASE_HOST: 127.0.0.1
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: SummerSchool
+    ports:
+      - "2345:5432"
+    volumes:
+      - /DockerData/postgres/data:/var/lib/postgresql/data
+  internal_api:
+    image: internalapi:dev
+    container_name: internal_api
+    restart: unless-stopped
+    ports:
+      # Main port
+      - "5262:80"
+      # gRPC service port
+      - "5666:5666"
+    environment:
+      - ASPNETCORE_URLS=http://+:80;http://+:5666
+      - PublicApiSettings__BaseUrl=http://public_api:80
+      - GrpcPort=5666
+    volumes:
+      - ../DockerData/internal_api/logs:/usr/logs
+    depends_on:
+      - postgres
+    build:
+      context: ..
+      dockerfile: CurrencyApi/InternalApi/Dockerfile
+  public_api:
+    image: publicapi:dev
+    container_name: public_api
+    ports:
+      - "5166:80"
+    depends_on:
+      - internal_api
+    build:
+      context: ..
+      dockerfile: CurrencyApi/PublicApi/Dockerfile
