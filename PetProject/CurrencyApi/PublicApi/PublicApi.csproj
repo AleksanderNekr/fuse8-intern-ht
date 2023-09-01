@@ -18,6 +18,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="7.0.0" />
+        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="7.1.0" />
         <PackageReference Include="Audit.HttpClient" Version="21.0.3"/>
         <PackageReference Include="Audit.NET" Version="21.0.3"/>
         <PackageReference Include="Audit.NET.Serilog" Version="21.0.3"/>
@@ -77,5 +79,8 @@
         <DependentUpon>Dockerfile</DependentUpon>
       </Content>
     </ItemGroup>
+
+
+
 
 </Project>

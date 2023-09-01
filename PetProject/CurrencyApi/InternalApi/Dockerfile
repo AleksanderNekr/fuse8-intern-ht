@@ -17,6 +17,8 @@ RUN dotnet restore "InternalApi/InternalApi.csproj"
 COPY . .
 WORKDIR "/src/InternalApi"
 RUN dotnet build "InternalApi.csproj" -c Release -o /app/build
+# For healthchecks
+RUN apt-get update && apt-get install -y curl
 
 FROM build AS publish
 RUN dotnet publish "InternalApi.csproj" -c Release -o /app/publish /p:UseAppHost=false

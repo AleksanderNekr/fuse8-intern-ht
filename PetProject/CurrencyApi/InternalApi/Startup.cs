@@ -11,9 +11,13 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Db;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.HealthChecks;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -21,7 +25,7 @@ using Serilog;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi;
 
-public class Startup
+public sealed class Startup
 {
     private readonly IConfiguration _configuration;
 
@@ -44,6 +48,10 @@ public class Startup
                                                                                   CurrencyApiConstants.SchemaName);
                                                                              });
                                                        });
+
+        services.AddHealthChecks()
+                .AddCheck<ExternalApiCheck>("ExternalAPI")
+                .AddNpgSql(connectionString);
 
         services.AddControllers()
                 .AddJsonOptions(static options =>
@@ -134,7 +142,15 @@ public class Startup
         }
 
         app.UseRouting()
-           .UseEndpoints(static endpoints => endpoints.MapControllers());
+           .UseEndpoints(static endpoints =>
+                         {
+                             endpoints.MapControllers();
+                             endpoints.MapHealthChecks("/_health",
+                                                       new HealthCheckOptions
+                                                       {
+                                                           ResponseWriter = WriteCheckResponse
+                                                       });
+                         });
 
         app.UseHttpLogging();
 
@@ -146,5 +162,28 @@ public class Startup
                                        grpcBuilder.UseEndpoints(static builder =>
                                                                     builder.MapGrpcService<CurrencyGrpcService>());
                                    });
+    }
+
+    private static Task WriteCheckResponse(HttpContext httpContext, HealthReport healthReport)
+    {
+        switch (healthReport.Status)
+        {
+            case HealthStatus.Unhealthy:
+                Log.Error("HealthCheck executed, result: UNHEALTHY");
+
+                break;
+            case HealthStatus.Degraded:
+                Log.Warning("HealthCheck executed, result: DEGRADED");
+
+                break;
+            case HealthStatus.Healthy:
+                Log.Information("HealthCheck executed, result: healthy");
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        return UIResponseWriter.WriteHealthCheckUIResponse(httpContext, healthReport);
     }
 }

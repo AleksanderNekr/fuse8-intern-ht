@@ -27,10 +27,17 @@ services:
       - ASPNETCORE_URLS=http://+:80;http://+:5666
       - PublicApiSettings__BaseUrl=http://public_api:80
       - GrpcPort=5666
+    healthcheck:
+      test: curl -f http://localhost:80/_health || exit 1
+      interval: 60s
+      retries: 5
+      timeout: 10s
+      start_period: 10s
     volumes:
-      - ../DockerData/internal_api/logs:/usr/logs
+      - /DockerData/internal_api/logs:/usr/logs
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
     build:
       context: ..
       dockerfile: CurrencyApi/InternalApi/Dockerfile
@@ -39,8 +46,15 @@ services:
     container_name: public_api
     ports:
       - "5166:80"
+    healthcheck:
+      test: curl -f http://localhost:80/_health || exit 1
+      interval: 60s
+      retries: 5
+      timeout: 10s
+      start_period: 10s
     depends_on:
-      - internal_api
+      internal_api:
+        condition: service_started
     build:
       context: ..
       dockerfile: CurrencyApi/PublicApi/Dockerfile

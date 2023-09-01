@@ -17,6 +17,8 @@ RUN dotnet restore "PublicApi/PublicApi.csproj"
 COPY . .
 WORKDIR "/src/PublicApi"
 RUN dotnet build "PublicApi.csproj" -c Release -o /app/build
+# For healthchecks
+RUN apt-get update && apt-get install -y curl
 
 FROM build AS publish
 RUN dotnet publish "PublicApi.csproj" -c Release -o /app/publish /p:UseAppHost=false

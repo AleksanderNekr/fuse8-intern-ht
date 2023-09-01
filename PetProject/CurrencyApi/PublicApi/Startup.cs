@@ -7,9 +7,12 @@ using Fuse8_ByteMinds.SummerSchool.PublicApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Data;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Filters;
 using Fuse8_ByteMinds.SummerSchool.PublicApi.Services;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -53,6 +56,9 @@ public sealed class Startup
                                                                        LogLevel.Information);
                                                          builder.EnableSensitiveDataLogging();
                                                      });
+
+        services.AddHealthChecks()
+                .AddNpgSql(connectionString);
 
         services.AddControllers(static options => options.Filters.Add<ExceptionFilter>())
 
@@ -105,7 +111,7 @@ public sealed class Startup
                                      object? contentBody = httpClientEvent.Action?.Response?.Content?.Body;
                                      if (contentBody is string { Length: > 1000 } body)
                                      {
-                                         httpClientEvent.Action.Response.Content.Body = body[..1000] + "<...>";
+                                         httpClientEvent.Action!.Response!.Content!.Body = body[..1000] + "<...>";
                                      }
 
                                      return @event.ToJson();
@@ -122,8 +128,39 @@ public sealed class Startup
         }
 
         app.UseRouting()
-           .UseEndpoints(static endpoints => endpoints.MapControllers());
+           .UseEndpoints(static endpoints =>
+                         {
+                             endpoints.MapControllers();
+                             endpoints.MapHealthChecks("/_health",
+                                                       new HealthCheckOptions
+                                                       {
+                                                           ResponseWriter = WriteCheckResponse
+                                                       });
+                         });
 
         app.UseHttpLogging();
+    }
+
+    private static Task WriteCheckResponse(HttpContext httpContext, HealthReport healthReport)
+    {
+        switch (healthReport.Status)
+        {
+            case HealthStatus.Unhealthy:
+                Log.Error("HealthCheck executed, result: UNHEALTHY");
+
+                break;
+            case HealthStatus.Degraded:
+                Log.Warning("HealthCheck executed, result: DEGRADED");
+
+                break;
+            case HealthStatus.Healthy:
+                Log.Information("HealthCheck executed, result: healthy");
+
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        return UIResponseWriter.WriteHealthCheckUIResponse(httpContext, healthReport);
     }
 }
