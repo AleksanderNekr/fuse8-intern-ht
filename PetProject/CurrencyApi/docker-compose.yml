@@ -2,61 +2,65 @@ version: '3.9'
 
 services:
   postgres:
-    container_name: postgres
+    env_file:
+      - .env
+    container_name: ${POSTGRES_CONTAINER_NAME}
     image: postgres:15.4
     restart: unless-stopped
     environment:
-      DATABASE_HOST: 127.0.0.1
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: SummerSchool
+      DATABASE_HOST: ${POSTGRES_DB_HOST}
+      POSTGRES_USER: ${POSTGRES_USER_NAME}
+      POSTGRES_PASSWORD: ${POSTGRES_USER_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
     ports:
-      - "2345:5432"
+      - "2345:${POSTGRES_INTERNAL_PORT}"
     volumes:
       - /DockerData/postgres/data:/var/lib/postgresql/data
-  internal_api:
+  internal-api:
+    env_file:
+      - .env
     image: internalapi:dev
-    container_name: internal_api
+    container_name: ${INTERNAL_API_CONTAINER_NAME}
     restart: unless-stopped
     ports:
-      # Main port
-      - "5262:80"
-      # gRPC service port
-      - "5666:5666"
+      - "5262:${INTERNAL_API_INTERNAL_PORT}"
+      - "${GRPC_PORT}:${GRPC_PORT}"
     environment:
-      - ASPNETCORE_URLS=http://+:80;http://+:5666
-      - GrpcPort=5666
-      - ConnectionStrings__LocalConnection=Host=postgres;Port=5432;Database=SummerSchool;Username=admin;Password=admin
+      - ASPNETCORE_URLS=http://+:${INTERNAL_API_INTERNAL_PORT};http://+:${GRPC_PORT}
+      - GrpcPort=${GRPC_PORT}
+      - ConnectionStrings__LocalConnection=Host=${POSTGRES_CONTAINER_NAME};Port=${POSTGRES_INTERNAL_PORT};Database=${POSTGRES_DB_NAME};Username=${POSTGRES_USER_NAME};Password=${POSTGRES_USER_PASSWORD}
     healthcheck:
-      test: curl -f http://localhost:80/_health || exit 1
-      interval: 60s
-      retries: 5
-      timeout: 10s
-      start_period: 10s
+      test: curl -f http://localhost:${INTERNAL_API_INTERNAL_PORT}/_health || exit 1
+      interval: ${HEALTHCHECK_INTERVAL}
+      retries: ${HEALTHCHECK_RETRIES}
+      timeout: ${HEALTHCHECK_TIMEOUT}
+      start_period: ${HEALTHCHECK_START_PERIOD}
     volumes:
-      - /DockerData/internal_api/logs:/usr/logs
+      - /DockerData/${INTERNAL_API_CONTAINER_NAME}/logs:/usr/logs
     depends_on:
       postgres:
         condition: service_started
     build:
       context: ..
       dockerfile: CurrencyApi/InternalApi/Dockerfile
-  public_api:
+  public-api:
+    env_file:
+      - .env
     image: publicapi:dev
-    container_name: public_api
+    container_name: ${PUBLIC_API_CONTAINER_NAME}
     ports:
-      - "5166:80"
+      - "5166:${PUBLIC_API_INTERNAL_PORT}"
     environment:
-      - GrpcAddress=http://internal_api:5666
-      - ConnectionStrings__LocalConnection=Host=postgres;Port=5432;Database=SummerSchool;Username=admin;Password=admin
+      - GrpcAddress=http://${INTERNAL_API_CONTAINER_NAME}:${GRPC_PORT}
+      - ConnectionStrings__LocalConnection=Host=${POSTGRES_CONTAINER_NAME};Port=${POSTGRES_INTERNAL_PORT};Database=${POSTGRES_DB_NAME};Username=${POSTGRES_USER_NAME};Password=${POSTGRES_USER_PASSWORD}
     healthcheck:
-      test: curl -f http://localhost:80/_health || exit 1
-      interval: 60s
-      retries: 5
-      timeout: 10s
-      start_period: 10s
+      test: curl -f http://localhost:${PUBLIC_API_INTERNAL_PORT}/_health || exit 1
+      interval: ${HEALTHCHECK_INTERVAL}
+      retries: ${HEALTHCHECK_RETRIES}
+      timeout: ${HEALTHCHECK_TIMEOUT}
+      start_period: ${HEALTHCHECK_START_PERIOD}
     depends_on:
-      internal_api:
+      internal-api:
         condition: service_started
     build:
       context: ..
