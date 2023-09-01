@@ -28,4 +28,9 @@ public class CurrencyInternalContext : DbContext
     /// Коллекция сущностей валют.
     /// </summary>
     public DbSet<CurrencyInfoEntity> CurrencyInfos { get; set; } = null!;
+
+    /// <summary>
+    /// Коллекция сущностей кэша задач.
+    /// </summary>
+    public DbSet<CacheTaskEntity> CacheTasks { get; set; } = null!;
 }
