@@ -34,7 +34,9 @@ public sealed class QueueBackgroundService : BackgroundService
     {
         try
         {
-            IQueryable<CacheTaskEntity> tasks      = PendingTasks();
+            using IServiceScope         scope      = _serviceProvider.CreateScope();
+            var                         context    = scope.ServiceProvider.GetRequiredService<CurrencyInternalContext>();
+            IQueryable<CacheTaskEntity> tasks      = PendingTasks(context);
             int                         tasksCount = await tasks.CountAsync(stopToken);
             _logger.LogDebug("Found {Count} pending tasks", tasksCount);
             if (tasksCount > 1)
@@ -58,11 +60,8 @@ public sealed class QueueBackgroundService : BackgroundService
 
         return;
 
-        IQueryable<CacheTaskEntity> PendingTasks()
+        static IQueryable<CacheTaskEntity> PendingTasks(CurrencyInternalContext context)
         {
-            using IServiceScope scope   = _serviceProvider.CreateScope();
-            var                 context = scope.ServiceProvider.GetRequiredService<CurrencyInternalContext>();
-
             return context.CacheTasks
                           .Where(static x => x.Status == Status.Created || x.Status == Status.Running);
         }
