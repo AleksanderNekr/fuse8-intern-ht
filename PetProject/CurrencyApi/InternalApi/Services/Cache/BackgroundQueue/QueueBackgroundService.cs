@@ -28,8 +28,8 @@ public sealed class QueueBackgroundService : BackgroundService
 
             try
             {
-                IServiceScope scope  = _serviceProvider.CreateScope();
-                var           worker = scope.ServiceProvider.GetRequiredService<IRecalculationWorker>();
+                using IServiceScope scope  = _serviceProvider.CreateScope();
+                var                 worker = scope.ServiceProvider.GetRequiredService<IRecalculationWorker>();
                 await worker.RecalculateCacheAsync(task.Id, stoppingToken);
             }
             catch (Exception e)
