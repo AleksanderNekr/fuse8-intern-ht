@@ -110,6 +110,7 @@ public sealed class Startup
 
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
+        services.AddScoped<IRecalculationWorker, RecalculationDbWorker>();
         services.AddHostedService<QueueBackgroundService>();
 
         services.AddSingleton<CurrenciesSettings>(static provider =>
