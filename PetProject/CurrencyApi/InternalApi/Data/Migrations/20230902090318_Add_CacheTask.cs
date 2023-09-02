@@ -17,11 +17,13 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    status = table.Column<string>(type: "text", nullable: false)
+                    status = table.Column<string>(type: "text", nullable: false),
+                    new_base_currency = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("cache_task_pk", x => x.id);
+                    table.CheckConstraint("currency_enum_range_ch", "new_base_currency IN ('EUR', 'KZT', 'RUB', 'USD')");
                     table.CheckConstraint("status_enum_range_ch", "status IN ('Created', 'Running', 'RanToCompletion', 'Canceled', 'Faulted')");
                 });
         }

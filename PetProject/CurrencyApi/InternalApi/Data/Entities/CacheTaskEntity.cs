@@ -1,11 +1,15 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Entities;
 
-public sealed class CacheTaskEntity
+public sealed record CacheTaskEntity
 {
     public required Guid Id { get; init; }
 
     public required Status Status { get; init; }
+
+    public required CurrencyType NewBaseCurrency { get; init; }
 }
 
 public enum Status

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
 {
     [DbContext(typeof(CurrencyInternalContext))]
-    [Migration("20230901174142_Add_CacheTask")]
+    [Migration("20230902090318_Add_CacheTask")]
     partial class Add_CacheTask
     {
         /// <inheritdoc />
@@ -33,6 +33,11 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("NewBaseCurrency")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_base_currency");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")
@@ -43,6 +48,8 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
 
                     b.ToTable("cache_tasks", "cur", t =>
                         {
+                            t.HasCheckConstraint("currency_enum_range_ch", "new_base_currency IN ('EUR', 'KZT', 'RUB', 'USD')");
+
                             t.HasCheckConstraint("status_enum_range_ch", "status IN ('Created', 'Running', 'RanToCompletion', 'Canceled', 'Faulted')");
                         });
                 });

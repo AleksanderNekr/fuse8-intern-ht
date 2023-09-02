@@ -28,8 +28,12 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
+
+                    b.Property<string>("NewBaseCurrency")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_base_currency");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -41,6 +45,8 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Migrations
 
                     b.ToTable("cache_tasks", "cur", t =>
                         {
+                            t.HasCheckConstraint("currency_enum_range_ch", "new_base_currency IN ('EUR', 'KZT', 'RUB', 'USD')");
+
                             t.HasCheckConstraint("status_enum_range_ch", "status IN ('Created', 'Running', 'RanToCompletion', 'Canceled', 'Faulted')");
                         });
                 });
