@@ -96,14 +96,13 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers
         public async Task<ActionResult<Guid>> RecalculateCacheAgainstAsync(
             CurrencyType newBaseCurrency, CancellationToken stopToken)
         {
-            var          id     = Guid.NewGuid();
-            const Status status = Status.Created;
-
+            var id = Guid.NewGuid();
             CacheTaskEntity task = new()
                                    {
                                        Id              = id,
-                                       Status          = status,
-                                       NewBaseCurrency = newBaseCurrency
+                                       Status          = Status.Created,
+                                       NewBaseCurrency = newBaseCurrency,
+                                       AddedAt         = DateTimeOffset.UtcNow
                                    };
 
             AddTaskResult result = await _tasksQueue.EnqueueAsync(task, stopToken);

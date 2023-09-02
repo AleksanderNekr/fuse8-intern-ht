@@ -7,9 +7,11 @@ public sealed record CacheTaskEntity
 {
     public required Guid Id { get; init; }
 
-    public required Status Status { get; init; }
+    public required Status Status { get; set; }
 
     public required CurrencyType NewBaseCurrency { get; init; }
+
+    public required DateTimeOffset AddedAt { get; set; }
 }
 
 public enum Status

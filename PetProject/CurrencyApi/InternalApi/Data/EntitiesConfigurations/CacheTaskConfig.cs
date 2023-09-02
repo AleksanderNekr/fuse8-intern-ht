@@ -24,6 +24,10 @@ public class CacheTaskConfig : IEntityTypeConfiguration<CacheTaskEntity>
                .HasConversion(static type => type.ToString(),
                               static s => Enum.Parse<CurrencyType>(s, true));
 
+        builder.Property(static x => x.AddedAt)
+               .HasColumnName("added_at")
+               .HasColumnType("timestamptz");
+
         builder.HasKey(static x => x.Id)
                .HasName("cache_task_pk");
 
