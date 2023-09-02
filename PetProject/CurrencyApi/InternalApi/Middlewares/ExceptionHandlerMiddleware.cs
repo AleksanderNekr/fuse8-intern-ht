@@ -46,6 +46,11 @@ public class ExceptionHandlerMiddleware
                                                         StatusCode = context.Response.StatusCode,
                                                     });
         }
+        catch (TaskCanceledException)
+        {
+            _logger.LogWarning("Task was cancelled");
+            context.Response.StatusCode = 204;
+        }
         catch (Exception e)
         {
             const string message = "Unknown exception";
