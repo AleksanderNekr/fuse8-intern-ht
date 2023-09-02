@@ -25,7 +25,7 @@ public sealed class QueueBackgroundService : BackgroundService
     /// <inheritdoc />
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Service started");
+        _logger.LogDebug("Service starting");
         await ProcessTasksAsync(cancellationToken);
         await base.StartAsync(cancellationToken);
     }
