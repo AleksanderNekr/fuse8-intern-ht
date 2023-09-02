@@ -9,6 +9,7 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Middlewares;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.BackgroundQueue;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Db;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Grpc;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.HealthChecks;
@@ -109,6 +110,8 @@ public sealed class Startup
         services.Configure<CacheSettings>(cacheSection);
 
         services.AddGrpc();
+
+        services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
         return;
 
