@@ -70,10 +70,10 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers
         /// <response code="404">
         ///     Возвращает, если валюта не найдена.
         /// </response>
-        [HttpGet("{currencyCode}")]
-        public async Task<ActionResult<CurrencyInfo>> GetCurrencyOnDate(CurrencyType         currencyCode,
-                                                                        [FromQuery] DateOnly date,
-                                                                        CancellationToken    stopToken)
+        [HttpGet("{currencyCode}/{date}")]
+        public async Task<ActionResult<CurrencyInfo>> GetCurrencyOnDate(CurrencyType      currencyCode,
+                                                                        DateOnly          date,
+                                                                        CancellationToken stopToken)
         {
             CurrencyInfo currencyInfo = await _service.GetCurrencyOnDateAsync(currencyCode, date, stopToken);
 
@@ -110,14 +110,14 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers
 
             if (result != AddTaskResult.Success)
             {
-                _logger.LogError("Bad try to enqueue task {Task}.\nResult: {Result}", task.ToString(), result);
+                _logger.LogError("Bad try to enqueue task {Task}.\nResult: {Result}", task, result);
 
                 return NotFound();
             }
 
             await _context.AddAsync(task, stopToken);
             await _context.SaveChangesAsync(stopToken);
-            _logger.LogInformation("Successfully enqueued and published task {Task}", task.ToString());
+            _logger.LogInformation("Successfully enqueued and published task {Task}", task);
 
             return Accepted(id);
         }
