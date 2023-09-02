@@ -2,7 +2,6 @@ using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers;
 
@@ -20,11 +19,11 @@ public class CurrencyApiController : ControllerBase
     ///     Инициализация контроллера курсов валют.
     /// </summary>
     /// <param name="service"><see cref="ICurrencyApiService" /> сервис получения информации от CurrencyApi.</param>
-    /// <param name="optionsMonitor">Настройки текущего API.</param>
-    public CurrencyApiController(ICurrencyApiService service, IOptionsMonitor<CurrenciesSettings> optionsMonitor)
+    /// <param name="settings">Настройки текущего API.</param>
+    public CurrencyApiController(ICurrencyApiService service, CurrenciesSettings settings)
     {
         _service  = service;
-        _settings = optionsMonitor.CurrentValue;
+        _settings = settings;
     }
 
     /// <summary>

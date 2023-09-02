@@ -3,17 +3,20 @@ using System;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Migrations
+namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Migrations
 {
     [DbContext(typeof(CurrencyInternalContext))]
-    partial class CurrencyInternalContextModelSnapshot : ModelSnapshot
+    [Migration("20230902170556_Move_CurrenciesSettings_to_DB")]
+    partial class Move_CurrenciesSettings_to_DB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

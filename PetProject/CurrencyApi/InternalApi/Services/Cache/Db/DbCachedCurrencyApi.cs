@@ -2,7 +2,6 @@
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
-using Microsoft.Extensions.Options;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.Cache.Db;
 
@@ -15,15 +14,15 @@ public sealed class DbCachedCurrencyApi : ICachedCurrencyAPI
     private readonly CurrenciesSettings           _settings;
 
     /// <inheritdoc cref="ICachedCurrencyAPI" />
-    public DbCachedCurrencyApi(ILogger<DbCachedCurrencyApi>        logger,
-                               ICurrencyApiService                 apiService,
-                               IOptionsMonitor<CurrenciesSettings> currenciesMonitor,
-                               DbCacheRepository                   repository)
+    public DbCachedCurrencyApi(ILogger<DbCachedCurrencyApi> logger,
+                               ICurrencyApiService          apiService,
+                               CurrenciesSettings           settings,
+                               DbCacheRepository            repository)
     {
         _logger     = logger;
         _apiService = apiService;
         _repository = repository;
-        _settings   = currenciesMonitor.CurrentValue;
+        _settings   = settings;
     }
 
     /// <inheritdoc />

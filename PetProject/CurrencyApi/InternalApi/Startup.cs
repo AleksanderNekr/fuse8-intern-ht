@@ -103,9 +103,6 @@ public sealed class Startup
                             });
         Configuration.Setup().UseSerilog(ConfigureAuditSerilog);
 
-        IConfigurationSection currenciesSection = _configuration.GetSection(CurrencyApiConstants.CurrenciesSettingsKey);
-        services.Configure<CurrenciesSettings>(currenciesSection);
-
         IConfigurationSection cacheSection = _configuration.GetSection(CurrencyApiConstants.CacheSettingsKey);
         services.Configure<CacheSettings>(cacheSection);
 
@@ -114,6 +111,15 @@ public sealed class Startup
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
         services.AddHostedService<QueueBackgroundService>();
+
+        services.AddSingleton<CurrenciesSettings>(static provider =>
+                                                  {
+                                                      using IServiceScope scope = provider.CreateScope();
+                                                      var context = scope.ServiceProvider
+                                                                         .GetRequiredService<CurrencyInternalContext>();
+
+                                                      return context.Settings.Single();
+                                                  });
 
         return;
 

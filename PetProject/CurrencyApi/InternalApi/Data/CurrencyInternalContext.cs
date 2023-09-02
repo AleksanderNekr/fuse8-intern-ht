@@ -1,5 +1,6 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Constants;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Entities;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Data;
@@ -33,4 +34,9 @@ public class CurrencyInternalContext : DbContext
     /// Коллекция сущностей кэша задач.
     /// </summary>
     public DbSet<CacheTaskEntity> CacheTasks { get; set; } = null!;
+
+    /// <summary>
+    /// Настройки системы (должна быть 1 сущность).
+    /// </summary>
+    public DbSet<CurrenciesSettings> Settings { get; set; } = null!;
 }

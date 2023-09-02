@@ -3,7 +3,6 @@ using System.Text.Json;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
-using Microsoft.Extensions.Options;
 
 namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
 
@@ -15,10 +14,10 @@ public sealed class CurrencyApiService : ICurrencyApiService
     private const    string             CurrenciesSeparator = ",";
 
     /// <inheritdoc cref="ICurrencyApiService" />
-    public CurrencyApiService(HttpClient httpClient, IOptionsMonitor<CurrenciesSettings> optionsMonitor)
+    public CurrencyApiService(HttpClient httpClient, CurrenciesSettings settings)
     {
         _httpClient = httpClient;
-        _settings   = optionsMonitor.CurrentValue;
+        _settings   = settings;
     }
 
     /// <inheritdoc />

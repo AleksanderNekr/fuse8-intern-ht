@@ -18,14 +18,14 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
     private readonly ILogger<CurrencyGrpcService> _logger;
 
     /// <inheritdoc />
-    public CurrencyGrpcService(ICachedCurrencyAPI                  cachedCurrencyApi,
-                               ICurrencyApiService                 currencyApiService,
-                               IOptionsMonitor<CurrenciesSettings> optionsMonitor,
-                               ILogger<CurrencyGrpcService>        logger)
+    public CurrencyGrpcService(ICachedCurrencyAPI           cachedCurrencyApi,
+                               ICurrencyApiService          currencyApiService,
+                               CurrenciesSettings           settings,
+                               ILogger<CurrencyGrpcService> logger)
     {
         _cachedCurrencyApi  = cachedCurrencyApi;
         _currencyApiService = currencyApiService;
-        _settings           = optionsMonitor.CurrentValue;
+        _settings           = settings;
         _logger             = logger;
     }
 
@@ -33,8 +33,8 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
     public override async Task<CurrencyResponse> GetCurrentCurrency(CurrencyRequest request, ServerCallContext context)
     {
         CurrencyInfo currencyInfo = await _cachedCurrencyApi.GetCurrentCurrencyAsync(
-                                     (CurrencyType)request.Code,
-                                     context.CancellationToken);
+                                         (CurrencyType)request.Code,
+                                         context.CancellationToken);
         _logger.LogDebug("Received model from API: {Model}", currencyInfo);
 
         CurrencyResponse response = new()
@@ -50,9 +50,9 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
                                                                    ServerCallContext     context)
     {
         CurrencyInfo currencyInfo = await _cachedCurrencyApi.GetCurrencyOnDateAsync(
-                                     (CurrencyType)request.Code,
-                                     DateOnly.FromDateTime(request.Date.ToDateTime()),
-                                     context.CancellationToken);
+                                         (CurrencyType)request.Code,
+                                         DateOnly.FromDateTime(request.Date.ToDateTime()),
+                                         context.CancellationToken);
         _logger.LogDebug("Received model from API: {Model}", currencyInfo);
 
         CurrencyResponse response = new()
@@ -109,9 +109,10 @@ public class CurrencyGrpcService : CurrencyApiGrpc.CurrencyApiGrpcBase
                                                                            ServerCallContext             context)
     {
         DateOnly date = DateOnly.FromDateTime(request.Date.ToDateTime());
-        CurrencyInfo byFavorite = await _cachedCurrencyApi.GetCurrencyOnDateAsync((CurrencyType)request.FavoriteCurrency,
-                                      date,
-                                      context.CancellationToken);
+        CurrencyInfo byFavorite = await _cachedCurrencyApi.GetCurrencyOnDateAsync(
+                                       (CurrencyType)request.FavoriteCurrency,
+                                       date,
+                                       context.CancellationToken);
 
         bool baseCurrenciesEqual = string.Equals(_settings.BaseCurrency,
                                                  request.FavoriteBaseCurrency.ToString(),
