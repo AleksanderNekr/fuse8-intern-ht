@@ -43,7 +43,7 @@ public sealed class QueueBackgroundService : BackgroundService
             {
                 IOrderedQueryable<CacheTaskEntity> orderedByDate = tasks.OrderBy(static x => x.AddedAt);
                 await EnqueueLastTask(orderedByDate);
-                await SetTasksBeforeLastCanceled(orderedByDate);
+                await SetFirstTasksCanceled(orderedByDate, context, tasksCount - 1);
             }
             else if (tasksCount == 1)
             {
@@ -74,10 +74,18 @@ public sealed class QueueBackgroundService : BackgroundService
             _logger.LogDebug("Enqueued last task {Task}", enqueuingTask);
         }
 
-        async Task SetTasksBeforeLastCanceled(IOrderedQueryable<CacheTaskEntity> orderedByDate)
+        Task SetFirstTasksCanceled(IOrderedQueryable<CacheTaskEntity> orderedByDate, CurrencyInternalContext context,
+                                   int                                tasksCount)
         {
-            await orderedByDate.SkipLast(1)
-                               .ForEachAsync(static x => x.Status = Status.Canceled, stopToken);
+            IQueryable<CacheTaskEntity> toCancel = orderedByDate.Take(tasksCount);
+            foreach (CacheTaskEntity task in toCancel)
+            {
+                task.Status = Status.Canceled;
+            }
+
+            context.UpdateRange(toCancel);
+
+            return context.SaveChangesAsync(stopToken);
         }
 
         async Task EnqueueTask(CacheTaskEntity task)
