@@ -40,3 +40,18 @@ public class CurrencyInternalContext : DbContext
     /// </summary>
     public DbSet<CurrenciesSettings> Settings { get; set; } = null!;
 }
+
+internal static class Extensions
+{
+    public static Task UpdateBaseCurrencyAsync(this DbSet<CurrenciesSettings> dbSettings,
+                                               string                         newBaseCurrency,
+                                               CurrenciesSettings             settings,
+                                               CancellationToken              stopToken)
+    {
+        settings.BaseCurrency = newBaseCurrency;
+
+        return dbSettings.ExecuteUpdateAsync(calls => calls.SetProperty(static settings => settings.BaseCurrency,
+                                                                        newBaseCurrency),
+                                             stopToken);
+    }
+}
