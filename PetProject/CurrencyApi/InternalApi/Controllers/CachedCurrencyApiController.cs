@@ -104,18 +104,19 @@ namespace Fuse8_ByteMinds.SummerSchool.InternalApi.Controllers
                                        NewBaseCurrency = newBaseCurrency,
                                        AddedAt         = DateTimeOffset.UtcNow
                                    };
+            await _context.AddAsync(task, stopToken);
+            await _context.SaveChangesAsync(stopToken);
 
             AddTaskResult result = await _tasksQueue.EnqueueAsync(task, stopToken);
-
             if (result != AddTaskResult.Success)
             {
                 _logger.LogError("Bad try to enqueue task {Task}.\nResult: {Result}", task, result);
+                _context.Remove(task);
+                await _context.SaveChangesAsync(stopToken);
 
                 return NotFound();
             }
 
-            await _context.AddAsync(task, stopToken);
-            await _context.SaveChangesAsync(stopToken);
             _logger.LogInformation("Successfully enqueued and published task {Task}", task);
 
             return Accepted(id);
