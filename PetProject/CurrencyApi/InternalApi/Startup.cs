@@ -113,6 +113,8 @@ public sealed class Startup
 
         services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 
+        services.AddHostedService<QueueBackgroundService>();
+
         return;
 
         static void ConfigureAuditSerilog(ISerilogConfigurator configurator)
