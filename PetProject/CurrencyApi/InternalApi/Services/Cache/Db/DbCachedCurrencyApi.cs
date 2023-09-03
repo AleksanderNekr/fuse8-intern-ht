@@ -1,4 +1,5 @@
 ﻿using Fuse8_ByteMinds.SummerSchool.InternalApi.Data.Entities;
+using Fuse8_ByteMinds.SummerSchool.InternalApi.Exceptions;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Models.Settings;
 using Fuse8_ByteMinds.SummerSchool.InternalApi.Services.ApiServices;
@@ -12,6 +13,8 @@ public sealed class DbCachedCurrencyApi : ICachedCurrencyAPI
     private readonly ICurrencyApiService          _apiService;
     private readonly DbCacheRepository            _repository;
     private readonly CurrenciesSettings           _settings;
+
+    private const int WaitForTasksSeconds = 10;
 
     /// <inheritdoc cref="ICachedCurrencyAPI" />
     public DbCachedCurrencyApi(ILogger<DbCachedCurrencyApi> logger,
@@ -32,6 +35,7 @@ public sealed class DbCachedCurrencyApi : ICachedCurrencyAPI
         if (_repository.InfoOutdated(out CurrenciesOnDateEntity? newestInfo))
         {
             _logger.LogDebug("Did not find relevant cache info");
+            await CheckIfCacheIsReadyAsync(cancellationToken);
 
             CurrencyInfo[] currenciesInfo =
                 await _apiService.GetAllCurrentCurrenciesAsync(_settings.BaseCurrency, cancellationToken);
@@ -61,6 +65,7 @@ public sealed class DbCachedCurrencyApi : ICachedCurrencyAPI
         if (info is null)
         {
             _logger.LogDebug("Did not find relevant cache info for {Date}", date);
+            await CheckIfCacheIsReadyAsync(cancellationToken);
 
             CurrenciesOnDate currenciesOnDate =
                 await _apiService.GetAllCurrenciesOnDateAsync(_settings.BaseCurrency, date, cancellationToken);
@@ -81,5 +86,23 @@ public sealed class DbCachedCurrencyApi : ICachedCurrencyAPI
         _logger.LogDebug("Found relevant info at {Date} in cache {@Model}", relevantInfo.UpdatedAt, currencyInfo);
 
         return currencyInfo;
+    }
+
+    private async Task CheckIfCacheIsReadyAsync(CancellationToken cancellationToken)
+    {
+        if (await _repository.AnyPendingTasksAsync())
+        {
+            _logger.LogWarning("Found pending tasks, waiting...");
+            await Task.Delay(TimeSpan.FromSeconds(WaitForTasksSeconds), cancellationToken);
+
+            if (await _repository.AnyPendingTasksAsync())
+            {
+                _logger.LogError("Still unfinished tasks");
+
+                throw new CacheUpdateConcurrencyException("Can't update cache while there are unfinished tasks");
+            }
+
+            _logger.LogDebug("All tasks completed");
+        }
     }
 }

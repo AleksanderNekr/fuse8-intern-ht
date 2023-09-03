@@ -93,6 +93,16 @@ public sealed class DbCacheRepository
                        .Where(entity => DateOnly.FromDateTime(entity.LastUpdatedAt) == date)
                        .GetNewest();
     }
+
+    /// <summary>
+    /// Проверка на существование неоконченных задач на пересчет кэша.
+    /// </summary>
+    /// <returns>true – неоконченные задачи есть, false – все задачи завершены.</returns>
+    internal Task<bool> AnyPendingTasksAsync()
+    {
+        return _context.CacheTasks
+                      .AnyAsync(static x => x.Status == Status.Created || x.Status == Status.Running);
+    }
 }
 
 file static class Extensions
