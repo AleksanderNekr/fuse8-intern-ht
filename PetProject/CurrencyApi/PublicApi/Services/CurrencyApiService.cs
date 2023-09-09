@@ -28,8 +28,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
     {
         CurrencyRequest request = new() { Code = (CurrencyCode)currency };
         CurrencyResponse response = await _grpcClient.GetCurrentCurrencyAsync(request,
-                                                                              options: new CallOptions(
-                                                                                   cancellationToken: stopToken));
+                                                                              cancellationToken: stopToken);
         decimal value   = response.Value;
         decimal rounded = Math.Round(value, decimalPlace);
 
@@ -53,8 +52,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
                                             Code = (CurrencyCode)currency
                                         };
         CurrencyResponse response = await _grpcClient.GetCurrencyOnDateAsync(request,
-                                                                             options: new CallOptions(
-                                                                                  cancellationToken: stopToken));
+                                                                             cancellationToken: stopToken);
         decimal value   = response.Value;
         decimal rounded = Math.Round(value, decimalPlace);
 
@@ -70,7 +68,7 @@ public sealed class CurrencyApiService : ICurrencyApiService
     public async Task<SettingsInfo> GetSettingsAsync(CancellationToken stopToken)
     {
         SettingsResponse response = await _grpcClient.GetSettingsAsync(new Empty(),
-                                                                       new CallOptions(cancellationToken: stopToken));
+                                                                       cancellationToken: stopToken);
 
         CurrenciesSettings settings = await _context.Settings.SingleAsync(cancellationToken: stopToken);
 
