@@ -2,9 +2,9 @@
 
 internal static class CurrencyApiConstants
 {
-    public const string ApiSettingsKey = "API_KEY";
+    public const string GrpcAddressSettingsKey = "GrpcAddress";
 
-    public const string CurrenciesSectionName = "Currencies";
+    public const string DbConnectionString = "LocalConnection";
 
-    public const string ApiKeyHeader = "apikey";
+    public const string SchemaName = "user";
 }

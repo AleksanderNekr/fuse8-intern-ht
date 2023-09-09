@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <RootNamespace>Fuse8_ByteMinds.SummerSchool.InternalApi</RootNamespace>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DocumentationFile>bin\Debug\InternalApi.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DocumentationFile>bin\Release\InternalApi.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="7.0.0" />
+        <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="7.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.9"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.10"/>
+        <PackageReference Include="Npgsql" Version="7.0.4"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
+        <PackageReference Include="Serilog" Version="3.0.1"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="7.0.0"/>
+        <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0"/>
+        <PackageReference Include="Audit.HttpClient" Version="21.0.3"/>
+        <PackageReference Include="Audit.NET" Version="21.0.3"/>
+        <PackageReference Include="Audit.NET.Serilog" Version="21.0.3"/>
+        <PackageReference Include="Audit.WebApi" Version="21.0.3"/>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.49.0"/>
+        <PackageReference Include="Grpc.Tools" Version="2.56.2">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Google.Protobuf" Version="3.23.4"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Cache\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="Services\Grpc\Protos\currency_api.proto">
+            <ProtoRoot>Services\Grpc\Protos</ProtoRoot>
+            <Generator>MSBuild:Compile</Generator>
+            <OutputDir>obj\Debug\net7.0\</OutputDir>
+            <CompileOutputs>True</CompileOutputs>
+            <ProtoCompile>True</ProtoCompile>
+            <Access>Public</Access>
+            <GrpcServices>Server</GrpcServices>
+            <Link>Services\Grpc\Protos\currency_api.proto</Link>
+        </Protobuf>
+        <Protobuf Include="Services\Grpc\Protos\decimal.proto">
+            <GrpcServices>Server</GrpcServices>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug\net7.0\</OutputDir>
+            <ProtoRoot>Services/Grpc/Protos</ProtoRoot>
+        </Protobuf>
+        <Protobuf Include="Services\Grpc\Protos\currency_code.proto">
+            <GrpcServices>Server</GrpcServices>
+            <Access>Public</Access>
+            <ProtoCompile>True</ProtoCompile>
+            <CompileOutputs>True</CompileOutputs>
+            <OutputDir>obj\Debug\net7.0\</OutputDir>
+            <ProtoRoot>Services/Grpc/Protos</ProtoRoot>
+        </Protobuf>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+</Project>

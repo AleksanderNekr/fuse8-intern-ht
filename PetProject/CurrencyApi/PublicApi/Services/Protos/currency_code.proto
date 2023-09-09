@@ -1,0 +1,11 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Fuse8_ByteMinds.SummerSchool.Grpc";
+
+// Code of currency
+enum CurrencyCode {
+  USD = 0;
+  RUB = 1;
+  KZT = 2;
+  EUR = 3;
+}
