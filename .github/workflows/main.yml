@@ -11,8 +11,5 @@ jobs:
     environment: production
     steps:
       - name: deploy
-        env:
-          GITHUB_ENVIRONMENT: "DotnetDefault"
         run: |
-          github-env-export GITHUB_ENVIRONMENT
-          gh repo update --environment $GITHUB_ENVIRONMENT
+          gh repo update --environment production
