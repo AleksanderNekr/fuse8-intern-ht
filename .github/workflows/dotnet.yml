@@ -1,0 +1,30 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore Internal dependencies
+      run: dotnet restore PetProject/CurrencyApi/InternalApi/InternalApi.csproj
+    - name: Restore Public dependencies
+      run: dotnet restore PetProject/CurrencyApi/PublicApi/PublicApi.csproj
+    - name: Build Internal
+      run: dotnet build PetProject/CurrencyApi/InternalApi/InternalApi.csproj --no-restore
+    - name: Build Public
+      run: dotnet build PetProject/CurrencyApi/PublicApi/PublicApi.csproj --no-restore
