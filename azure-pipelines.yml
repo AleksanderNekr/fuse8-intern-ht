@@ -1,0 +1,41 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  dotnetVersion: '7.0.x'
+
+steps:
+- task: DotNetCoreInstaller@2
+  displayName: 'Setup .NET'
+  inputs:
+    packageName: 'Microsoft.AspNetCore.Sdk'
+    version: $(dotNetVersion)
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore internal dependencies'
+  inputs:
+    command: 'restore'
+    projects: 'PetProject/CurrencyApi/InternalApi/InternalApi.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Restore public dependencies'
+  inputs:
+    command: 'restore'
+    projects: 'PetProject/CurrencyApi/PublicApi/PublicApi.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build internal'
+  inputs:
+    command: 'build'
+    projects: 'PetProject/CurrencyApi/InternalApi/InternalApi.csproj'
+    noRestore: true
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build public'
+  inputs:
+    command: 'build'
+    projects: 'PetProject/CurrencyApi/PublicApi/PublicApi.csproj'
+    noRestore: true
