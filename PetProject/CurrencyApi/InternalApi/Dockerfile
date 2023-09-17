@@ -8,6 +8,7 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 RUN dotnet tool install --global --no-cache dotnet-subset --version 0.3.2
 WORKDIR app/src/
 COPY . .
+RUN pwd
 RUN dotnet subset restore "InternalApi/InternalApi.csproj" --root-directory /app --output restore_subset/
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
