@@ -9,7 +9,7 @@ RUN dotnet tool install --global --no-cache dotnet-subset --version 0.3.2
 WORKDIR app/src/
 COPY . .
 RUN ls
-RUN dotnet subset restore "InternalApi/InternalApi.csproj" --root-directory /app --output restore_subset/
+RUN dotnet subset restore "InternalApi/InternalApi.csproj" --root-directory /app/src --output restore_subset/
 RUN ls
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
@@ -17,7 +17,7 @@ WORKDIR /src
 RUN ls
 COPY --from=prepare-restore-files app/src/restore_subset .
 RUN ls
-RUN dotnet restore InternalApi/InternalApi.csproj
+RUN dotnet restore "InternalApi/InternalApi.csproj"
 COPY . .
 RUN dotnet build "InternalApi/InternalApi.csproj" -c Release -o /app/build
 # For healthchecks
