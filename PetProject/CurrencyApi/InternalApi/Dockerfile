@@ -15,7 +15,7 @@ RUN ls
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 RUN ls
-COPY --from=prepare-restore-files src/restore_subset .
+COPY --from=prepare-restore-files app/src/restore_subset .
 RUN dotnet restore "InternalApi/InternalApi.csproj"
 COPY . .
 RUN dotnet build "InternalApi/InternalApi.csproj" -c Release -o /app/build
