@@ -10,6 +10,7 @@ WORKDIR app/src/
 COPY . .
 RUN ls
 RUN dotnet subset restore "InternalApi/InternalApi.csproj" --root-directory /app --output restore_subset/
+RUN ls
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
