@@ -39,11 +39,3 @@ steps:
     command: 'build'
     projects: 'PetProject/CurrencyApi/PublicApi/PublicApi.csproj'
     noRestore: true
-
-- task: DotNetCoreCLI@2
-  displayName: 'Run projects'
-  inputs:
-    command: 'run'
-    projects: |
-      PetProject/CurrencyApi/InternalApi/InternalApi.csproj
-      PetProject/CurrencyApi/PublicApi/PublicApi.csproj
