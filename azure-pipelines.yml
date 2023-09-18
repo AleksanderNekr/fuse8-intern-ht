@@ -41,6 +41,7 @@ steps:
     noRestore: true
 
 - task: DotNetCoreCLI@2
+  displayName: 'Run projects'
   inputs:
     command: 'run'
     projects: |
