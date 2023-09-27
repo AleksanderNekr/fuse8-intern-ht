@@ -41,8 +41,8 @@ services:
       postgres:
         condition: service_started
     build:
-      context: ..
-      dockerfile: CurrencyApi/InternalApi/Dockerfile
+      context: .
+      dockerfile: InternalApi/Dockerfile
   public-api:
     env_file:
       - .env
@@ -63,5 +63,5 @@ services:
       internal-api:
         condition: service_started
     build:
-      context: ..
-      dockerfile: CurrencyApi/PublicApi/Dockerfile
+      context: .
+      dockerfile: PublicApi/Dockerfile
