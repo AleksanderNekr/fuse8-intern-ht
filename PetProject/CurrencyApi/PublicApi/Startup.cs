@@ -121,10 +121,14 @@ public sealed class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        app.UseSwagger();
         if (env.IsDevelopment())
         {
-            app.UseSwagger();
             app.UseSwaggerUI();
+        }
+        else
+        {
+            app.UseReDoc(static options => options.RoutePrefix = "swagger");
         }
 
         app.UseRouting()
