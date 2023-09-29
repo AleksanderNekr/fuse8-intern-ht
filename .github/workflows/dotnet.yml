@@ -32,5 +32,5 @@ jobs:
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: www.web-api.somee.com
-        username: AlexSmith1
+        username: ${{ secrets.USER_NAME }}
         password: ${{ secrets.FTP_PASSWORD }}
