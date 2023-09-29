@@ -31,6 +31,6 @@ jobs:
     - name: 📂 Deploy to FTP server
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        server: ftp://web-api.somee.com/www.web-api.somee.com
+        server: ftp://web-api.somee.com
         username: AlexSmith1
         password: ${{ secrets.FTP_PASSWORD }}
