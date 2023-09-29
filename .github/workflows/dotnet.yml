@@ -39,13 +39,9 @@ jobs:
         name: build-artifact
         path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
     - name: 📂 Deploy to FTP server
-      uses: sokuhatiku/ftp-upload-artifact@main
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        name: build-artifact
-        path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
-        host: www.web-api.somee.com
-        port: 21
-        username: ${{ secrets.FTP_USERNAME }}
+        server: www.web-api.somee.com
+        username: AlexSmith1
         password: ${{ secrets.FTP_PASSWORD }}
-        secure: false
-        remote-path: /
+        local-dir: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
