@@ -32,12 +32,12 @@ jobs:
       uses: actions/upload-artifact@main
       with:
         name: build-artifact
-        path: PetProject/CurrencyApi/PublicApi/bin/Release/net7.0
+        path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
     - name: Download Artifact
       uses: actions/download-artifact@main
       with:
         name: build-artifact
-        path: PetProject/CurrencyApi/PublicApi/bin/Release/net7.0
+        path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
     - name: 📂 Deploy to FTP server
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
