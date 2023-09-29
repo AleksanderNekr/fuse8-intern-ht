@@ -28,9 +28,19 @@ jobs:
       run: dotnet build PetProject/CurrencyApi/InternalApi/InternalApi.csproj --no-restore
     - name: Build Public
       run: dotnet build PetProject/CurrencyApi/PublicApi/PublicApi.csproj --no-restore
+    - name: Archive artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: build-artifact
+        path: build-artifact
+    - name: Download Artifact
+      uses: actions/download-artifact@main
+      with:
+        name: build-artifact
+        path: build-artifact
     - name: 📂 Deploy to FTP server
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: www.web-api.somee.com
-        username: ${{ secrets.USER_NAME }}
+        username: AlexSmith1
         password: ${{ secrets.FTP_PASSWORD }}
