@@ -38,10 +38,7 @@ jobs:
       with:
         name: build-artifact
         path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0/
+    - name: Install FTP cmd tool
+      run: sudo apt-get install ftp-upload
     - name: 📂 Deploy to FTP server
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      with:
-        server: www.web-api.somee.com
-        username: AlexSmith1
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0/
+      run: ftp-upload -h www.web-api.somee.com -u {{ secrets.FTP_USER_NAME }} --password {{ secrets.FTP_PASSWORD }} -d ./ PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
