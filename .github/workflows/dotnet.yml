@@ -39,7 +39,7 @@ jobs:
         name: build-artifact
         path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
     - name: 📂 Deploy to FTP server
-      uses: sokuhatiku/ftp-upload-artifact@v1
+      uses: sokuhatiku/ftp-upload-artifact@main
       with:
         name: build-artifact
         path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
