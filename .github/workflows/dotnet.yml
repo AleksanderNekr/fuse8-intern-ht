@@ -41,4 +41,4 @@ jobs:
     - name: Install FTP cmd tool
       run: sudo apt-get install ftp-upload
     - name: 📂 Deploy to FTP server
-      run: ftp-upload -h www.web-api.somee.com -u {{ secrets.FTP_USER_NAME }} --password {{ secrets.FTP_PASSWORD }} -d ./ PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
+      run: ftp-upload -h ftp://155.254.244.30/www.web-api.somee.com -u {{ secrets.FTP_USER_NAME }} --password {{ secrets.FTP_PASSWORD }} -d ./ PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0
