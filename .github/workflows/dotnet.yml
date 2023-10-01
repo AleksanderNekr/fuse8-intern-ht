@@ -10,7 +10,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  deploy:
 
     runs-on: ubuntu-latest
 
@@ -28,3 +28,23 @@ jobs:
       run: dotnet build PetProject/CurrencyApi/InternalApi/InternalApi.csproj --no-restore
     - name: Build Public
       run: dotnet build PetProject/CurrencyApi/PublicApi/PublicApi.csproj --no-restore
+    - name: Archive artifact
+      uses: actions/upload-artifact@main
+      with:
+        name: build-artifact
+        path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0/
+    - name: Download Artifact
+      uses: actions/download-artifact@main
+      with:
+        name: build-artifact
+        path: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0/
+    - name: Install FTP cmd tool
+      run: sudo apt-get install ftp-upload
+    - name: 📂 Deploy to FTP server
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: web-api.somee.com
+        username: AlexSmith1
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: PetProject/CurrencyApi/PublicApi/bin/Debug/net7.0/
+        server-dir: www.web-api.somee.com/
